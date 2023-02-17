@@ -12,7 +12,7 @@ router.get("/:id", AccountController.getAccount);
 router.post("/", AccountController.createAccount);
 
 // Update account
-router.patch("/:id", AccountController.updateAccount);
+router.put("/:id", AccountController.updateAccount);
 
 // Delete an account
 router.delete("/:id", AccountController.deleteAccount);

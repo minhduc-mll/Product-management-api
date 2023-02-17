@@ -1,6 +1,7 @@
 const express = require("express");
 const router = require("./routes");
 require("dotenv").config();
+const cookieParser = require("cookie-parser");
 
 // Database Connection
 const connectDb = require("./config/config");
@@ -10,6 +11,7 @@ connectDb();
 const app = express();
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
+app.use(cookieParser());
 
 app.use("/public", express.static("./"));
 app.use("/", router);

@@ -20,8 +20,6 @@ module.exports = async (req, res, next) => {
         req.account = account;
         next();
     } catch (err) {
-        return res.status(500).json({
-            message: err.message,
-        });
+        console.error(err);
     }
 };

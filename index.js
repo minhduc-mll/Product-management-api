@@ -1,23 +1,35 @@
 const express = require("express");
-const router = require("./routes");
-require("dotenv").config();
-const cookieParser = require("cookie-parser");
+const cors = require("cors");
+const path = require("path");
+const dotenv = require("dotenv");
+const dotenvExpand = require("dotenv-expand");
+const myEnv = dotenv.config();
+dotenvExpand.expand(myEnv);
 
-// Database Connection
 const connectDb = require("./config/config");
-connectDb();
+const router = require("./routes");
+const cookieParser = require("cookie-parser");
 
 // App Engine
 const app = express();
+
+// Port
+const PORT = process.env.PORT || 5000;
+
+// Middleware
+app.use(cors());
+
+app.use(express.static(path.join(__dirname, "/public")));
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 app.use(cookieParser());
 
-app.use("/public", express.static("./"));
 app.use("/", router);
 
+// Database Connection
+connectDb();
+
 // Development Server
-const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
     console.log(`Application started on port: http://localhost:${PORT}`);
 });

@@ -1,9 +1,13 @@
 const express = require("express");
 const router = express.Router();
-const accountRouter = require("./account");
 const authRouter = require("./auth");
+const accountRouter = require("./account");
+const containerRouter = require("./container");
+const customerRouter = require("./customer");
 
-router.use("/", authRouter);
-router.use("/account", accountRouter);
+router.use("/auth", authRouter);
+router.use("/accounts", accountRouter);
+router.use("/containers", containerRouter);
+router.use("/customers", customerRouter);
 
 module.exports = router;

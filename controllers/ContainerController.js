@@ -1,10 +1,10 @@
 const Container = require("../models/Container");
 
 const getAllContainer = async (req, res) => {
-    const limit = Number(req.query.limit) || 0;
-    const sort = req.query.sort == "desc" ? -1 : 1;
-    const startDate = req.query.startdate || new Date("1970-1-1");
-    const endDate = req.query.enddate || new Date();
+    const limit = Number(req.body.limit) || 0;
+    const sort = req.body.sort == "desc" ? -1 : 1;
+    const startDate = req.body.startdate || new Date("1970-1-1");
+    const endDate = req.body.enddate || new Date();
 
     console.log(startDate, endDate);
 
@@ -13,7 +13,7 @@ const getAllContainer = async (req, res) => {
         const containers = await Container.find({
             date: { $gt: new Date(startDate), $lt: new Date(endDate) },
         })
-            .select("-_id -accounts._id")
+            .select("-_id -__v -accounts._id")
             .limit(limit)
             .sort({ id: sort });
         return res.status(200).json(containers);
@@ -23,11 +23,18 @@ const getAllContainer = async (req, res) => {
 };
 
 const getContainer = async (req, res) => {
+    if (req.params.containerid == null) {
+        return res.status(400).json({
+            status: "error",
+            message: "id should be provided",
+        });
+    }
+    
     try {
         // Get container by id
         const container = await Container.findOne({
             containerId: req.params.containerid,
-        }).select("-_id -accounts._id");
+        }).select("-_id -__v -accounts._id");
         return res.status(200).json(container);
     } catch (err) {
         console.error(err);
@@ -35,18 +42,18 @@ const getContainer = async (req, res) => {
 };
 
 const getContByContainerId = async (req, res) => {
-    const containerId = req.params.containerid;
-    const startDate = req.query.startdate || new Date("1970-1-1");
-    const endDate = req.query.enddate || new Date();
-
-    console.log(startDate, endDate);
+    if (req.params.containerid == null) {
+        return res.status(400).json({
+            status: "error",
+            message: "id should be provided",
+        });
+    }
 
     try {
-        // Get all containers
+        // Get container by id
         const containers = await Container.find({
-            containerId,
-            date: { $gt: new Date(startDate), $lt: new Date(endDate) },
-        }).select("-_id -accounts._id");
+            containerId: req.params.containerid,
+        }).select("-_id -__v -accounts._id");
         return res.status(200).json(containers);
     } catch (err) {
         console.error(err);
@@ -54,21 +61,27 @@ const getContByContainerId = async (req, res) => {
 };
 
 const getContByUserId = async (req, res) => {
-    const userId = req.params.userid;
-    const limit = Number(req.query.limit) || 0;
-    const sort = req.query.sort == "desc" ? -1 : 1;
-    const startDate = req.query.startdate || new Date("1970-1-1");
-    const endDate = req.query.enddate || new Date();
+    if (req.params.userId == null) {
+        return res.status(400).json({
+            status: "error",
+            message: "id should be provided",
+        });
+    }
+
+    const limit = Number(req.body.limit) || 0;
+    const sort = req.body.sort == "desc" ? -1 : 1;
+    const startDate = req.body.startdate || new Date("1970-1-1");
+    const endDate = req.body.enddate || new Date();
 
     console.log(startDate, endDate);
 
     try {
         // Get all containers
         const containers = await Container.find({
-            userId,
-            date: { $gt: new Date(startDate), $lt: new Date(endDate) },
+            userId: req.params.userid,
+            createdAt: { $gt: new Date(startDate), $lt: new Date(endDate) },
         })
-            .select("-_id -accounts._id")
+            .select("-_id -__v -accounts._id")
             .limit(limit)
             .sort({ id: sort });
         return res.status(200).json(containers);
@@ -78,21 +91,27 @@ const getContByUserId = async (req, res) => {
 };
 
 const getContByCustomerId = async (req, res) => {
-    const containerId = req.params.containerid;
-    const limit = Number(req.query.limit) || 0;
-    const sort = req.query.sort == "desc" ? -1 : 1;
-    const startDate = req.query.startdate || new Date("1970-1-1");
-    const endDate = req.query.enddate || new Date();
+    if (req.params.customerId == null) {
+        return res.status(400).json({
+            status: "error",
+            message: "id should be provided",
+        });
+    }
+
+    const limit = Number(req.body.limit) || 0;
+    const sort = req.body.sort == "desc" ? -1 : 1;
+    const startDate = req.body.startdate || new Date("1970-1-1");
+    const endDate = req.body.enddate || new Date();
 
     console.log(startDate, endDate);
 
     try {
         // Get all containers
         const containers = await Container.find({
-            containerId,
-            date: { $gt: new Date(startDate), $lt: new Date(endDate) },
+            customerId: req.params.customerId,
+            createdAt: { $gt: new Date(startDate), $lt: new Date(endDate) },
         })
-            .select("-_id -accounts._id")
+            .select("-_id -__v -accounts._id")
             .limit(limit)
             .sort({ id: sort });
         return res.status(200).json(containers);
@@ -102,21 +121,21 @@ const getContByCustomerId = async (req, res) => {
 };
 
 const createContainer = async (req, res) => {
-    if (req.body == undefined) {
+    if (typeof req.body == "undefined") {
         return res.status(400).json({
             status: "error",
             message: "data is undefined",
         });
     }
 
-    if (req.body.containerid == null) {
-        return res.status(400).json({ message: "Missing input" });
-    }
     try {
+        if (req.body.containerid == null) {
+            return res.status(400).json({ message: "Missing input" });
+        }
         // Find if container already exists
         const containerExists = await Container.findOne({
             containerId: req.body.containerid,
-        }).select("-_id -accounts._id");
+        });
         if (containerExists) {
             return res.status(500).json({
                 message: "Container exists.",
@@ -150,13 +169,12 @@ const createContainer = async (req, res) => {
 };
 
 const updateContainer = async (req, res) => {
-    if (req.body == undefined || req.params.containerid == null) {
-        res.status(400).json({
+    if (typeof req.body == "undefined" || req.params.containerid == null) {
+        return res.status(400).json({
             status: "error",
             message: "something went wrong! check your sent data",
         });
     }
-    console.log(req.params.containerid)
 
     try {
         // Find container and update
@@ -179,7 +197,7 @@ const updateContainer = async (req, res) => {
                     },
                     modified: {
                         modifiedAt: Date.now(),
-                        modifiedBy: req.body.userid,
+                        modifiedBy: req.user,
                     },
                 },
             }
@@ -192,7 +210,7 @@ const updateContainer = async (req, res) => {
 
 const deleteContainer = async (req, res) => {
     if (req.params.containerid == null) {
-        res.status(400).json({
+        return res.status(400).json({
             status: "error",
             message: "id should be provided",
         });
@@ -201,7 +219,7 @@ const deleteContainer = async (req, res) => {
         // Find container and delete
         const container = await Container.findOneAndDelete({
             containerId: req.params.containerid,
-        }).select("-_id -accounts._id");
+        });
         return res.status(200).json(container);
     } catch (err) {
         console.error(err);

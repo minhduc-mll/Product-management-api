@@ -1,13 +1,13 @@
 const Customer = require("../models/Customer");
 
 const getAllCustomer = async (req, res) => {
-    const limit = Number(req.query.limit) || 0;
-    const sort = req.query.sort == "desc" ? -1 : 1;
+    const limit = Number(req.body.limit) || 0;
+    const sort = req.body.sort == "desc" ? -1 : 1;
 
     try {
         // Get all customers
         const customers = await Customer.find()
-            .select(["-_id"])
+            .select({ _id: -1, __v: -1 })
             .limit(limit)
             .sort({ id: sort });
         return res.status(200).json(customers);
@@ -17,11 +17,18 @@ const getAllCustomer = async (req, res) => {
 };
 
 const getCustomer = async (req, res) => {
+    if (req.params.id == null) {
+        return res.status(400).json({
+            status: "error",
+            message: "id should be provided",
+        });
+    }
+
     try {
         // Get customer by id
         const customer = await Customer.findOne({
             id: req.params.id,
-        }).select(["-_id"]);
+        }).select({ _id: -1, __v: -1 });
         return res.status(200).json(customer);
     } catch (err) {
         console.error(err);
@@ -29,13 +36,20 @@ const getCustomer = async (req, res) => {
 };
 
 const getCustomerByUserId = async (req, res) => {
+    if (req.params.userId == null) {
+        return res.status(400).json({
+            status: "error",
+            message: "id should be provided",
+        });
+    }
+
     const limit = Number(req.query.limit) || 0;
     const sort = req.query.sort == "desc" ? -1 : 1;
 
     try {
         // Get customers by user id
         const customers = await Customer.find({ userId: req.params.userId })
-            .select(["-_id"])
+            .select({ _id: -1, __v: -1 })
             .limit(limit)
             .sort({ id: sort });
         return res.status(200).json(customers);
@@ -45,7 +59,7 @@ const getCustomerByUserId = async (req, res) => {
 };
 
 const createCustomer = async (req, res) => {
-    if (req.body == undefined) {
+    if (typeof req.body == "undefined") {
         return res.status(400).json({
             status: "error",
             message: "data is undefined",
@@ -53,10 +67,13 @@ const createCustomer = async (req, res) => {
     }
 
     try {
+        if (req.body.phone == null) {
+            return res.status(400).json({ message: "Missing input" });
+        }
         // Find if customer already exists
         const customerExists = await Customer.findOne({
             phone: req.body.phone,
-        }).select(["-_id"]);
+        });
         if (customerExists) {
             return res.status(500).json({
                 message: "Phone number already exists.",
@@ -92,6 +109,10 @@ const createCustomer = async (req, res) => {
                         lon: req.body.lon,
                     },
                 },
+                modified: {
+                    modifiedAt: Date.now(),
+                    modifiedBy: req.user,
+                },
             });
             newCustomer.save();
             return res.status(201).json(newCustomer);
@@ -102,8 +123,8 @@ const createCustomer = async (req, res) => {
 };
 
 const updateCustomer = async (req, res) => {
-    if (req.body == undefined || req.params.id == null) {
-        res.status(400).json({
+    if (typeof req.body == "undefined" || req.params.id == null) {
+        return res.status(400).json({
             status: "error",
             message: "something went wrong! check your sent data",
         });
@@ -113,7 +134,7 @@ const updateCustomer = async (req, res) => {
         // Find if phone number already exists
         const customerExists = await Customer.findOne({
             phone: req.body.phone,
-        }).select(["-_id"]);
+        });
         if (customerExists) {
             return res.status(500).json({
                 message: "Phone number already exists.",
@@ -144,9 +165,13 @@ const updateCustomer = async (req, res) => {
                             lon: req.body.lon,
                         },
                     },
+                    modified: {
+                        modifiedAt: Date.now(),
+                        modifiedBy: req.user,
+                    },
                 },
             }
-        ).select(["-_id"]);
+        );
         return res.status(202).json({ message: "Update successful" });
     } catch (err) {
         console.error(err);
@@ -155,7 +180,7 @@ const updateCustomer = async (req, res) => {
 
 const deleteCustomer = async (req, res) => {
     if (req.params.id == null) {
-        res.status(400).json({
+        return res.status(400).json({
             status: "error",
             message: "id should be provided",
         });
@@ -164,7 +189,7 @@ const deleteCustomer = async (req, res) => {
         // Find customer and delete
         const customer = await Customer.findOneAndDelete({
             id: req.params.id,
-        }).select(["-_id"]);
+        });
         return res.status(200).json(customer);
     } catch (err) {
         console.error(err);

@@ -1,21 +1,28 @@
 const jwt = require("jsonwebtoken");
-const Account = require("../models/Account");
+const User = require("../models/User");
+
+const read = async (req, res) => {
+    return res.json("login");
+};
 
 const login = async (req, res) => {
     const { username, password } = req.body;
     if (!username || !password) {
-        return res.status(400).json({ status: "error", message: "Missing input" });
+        return res
+            .status(400)
+            .json({ status: "error", message: "Missing input" });
     }
     // Find user account by username and password
     try {
-        const user = await Account.findOne({
+        const user = await User.findOne({
             username: username,
             password: password,
         });
         if (user == null) {
-            return res
-                .status(500)
-                .json({ status: "error", message: "Invalid username or password" });
+            return res.status(500).json({
+                status: "error",
+                message: "Invalid username or password",
+            });
         }
         // Create access token with user id
         let accessToken = jwt.sign({ id: user._id }, process.env.TOKEN_SECRET);
@@ -37,7 +44,9 @@ const changePassword = async (req, res) => {
     let newPassword = req.body.new_password;
 
     if (!oldPassword || !newPassword) {
-        return res.status(401).json({ status: "error", message: "Missing input" });
+        return res
+            .status(401)
+            .json({ status: "error", message: "Missing input" });
     }
     if (newPassword === oldPassword) {
         return res.status(401).json({
@@ -47,7 +56,9 @@ const changePassword = async (req, res) => {
     }
     // Check old password with account password
     if (oldPassword !== req.account.password) {
-        return res.status(401).json({ status: "error", message: "Invalid password" });
+        return res
+            .status(401)
+            .json({ status: "error", message: "Invalid password" });
     }
     try {
         // Save new password
@@ -60,6 +71,7 @@ const changePassword = async (req, res) => {
 };
 
 module.exports = {
+    read,
     login,
     logout,
     changePassword,

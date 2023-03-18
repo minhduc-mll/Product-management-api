@@ -24,6 +24,12 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 app.use(cookieParser());
 
+//view engine
+app.set("view engine", "ejs");
+app.set("views", "views");
+
+app.disable("view cache");
+
 app.use("/", router);
 
 // Database Connection

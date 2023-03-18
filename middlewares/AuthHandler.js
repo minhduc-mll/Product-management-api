@@ -1,23 +1,32 @@
 const jwt = require("jsonwebtoken");
-const Account = require("../models/Account");
+const User = require("../models/User");
 
 module.exports = async (req, res, next) => {
+    console.log(req.headers["authorization"]);
+    const Header = req.headers["authorization"];
+
+    if (typeof Header == "undefined") {
+        return res.status(403).send({
+            status: "error",
+            message: "data is undefined",
+        });
+    }
+    // Get user id from jwt token
+    const { id } = jwt.verify(Header, process.env.TOKEN_SECRET);
+    if (id == null) {
+        return res.status(500).json({
+            message: "Invalid token",
+        });
+    }
     try {
-        // Get account id from jwt token
-        let { id } = jwt.verify(req.cookies.token, process.env.TOKEN_SECRET);
-        if (id == null) {
+        // Find user with user id
+        const user = await User.findById(id);
+        if (user == null) {
             return res.status(500).json({
-                message: "Invalid token",
+                message: "User not found",
             });
         }
-        // Find account with account id
-        const account = await Account.findById(id);
-        if (account == null) {
-            return res.status(500).json({
-                message: "Account not found",
-            });
-        }
-        req.account = account;
+        req.user = user;
         next();
     } catch (err) {
         console.error(err);

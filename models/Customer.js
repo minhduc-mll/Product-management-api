@@ -1,38 +1,19 @@
 const mongoose = require("mongoose");
+const Schema = mongoose.Schema;
+const ObjectId = Schema.Types.ObjectId;
 
-const customer = mongoose.Schema({
-    id: {
-        type: Number,
-        required: true,
-    },
-    zalo: {
-        type: String,
-        require: true,
-    },
-    phone: {
-        type: String,
-        require: true,
-    },
-    email: {
-        type: String,
-    },
-    company: {
-        type: String,
-    },
-    bankAccount: {
-        type: String,
-    },
+const Customer = new Schema({
+    id: { type: Number, required: true },
+    zalo: { type: String, require: true },
+    phone: { type: String, require: true },
+    email: { type: String },
+    company: { type: String },
+    bankAccount: { type: String },
     name: {
-        firstname: {
-            type: String,
-        },
-        lastname: {
-            type: String,
-        },
+        firstname: String,
+        lastname: String,
     },
-    birhtday: {
-        type: Date,
-    },
+    birhtday: Date,
     address: {
         city: String,
         district: String,
@@ -43,20 +24,13 @@ const customer = mongoose.Schema({
             lon: String,
         },
     },
-    createdAt: {
-        type: Date,
-        default: Date.now,
-    },
-    modified: [{
-        modifiedAt: {
-            type: Date,
-            default: Date.now,
+    createdAt: { type: Date, default: Date.now },
+    modified: [
+        {
+            modifiedAt: { type: Date, default: Date.now },
+            modifiedBy: { type: ObjectId, ref: "User" },
         },
-        modifiedBy: {
-            type: mongoose.Schema.Types.Number,
-            ref: "Account",
-        }
-    }],
+    ],
 });
 
-module.exports = mongoose.model("Customer", customer);
+module.exports = mongoose.model("Customer", Customer);

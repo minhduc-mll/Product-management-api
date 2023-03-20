@@ -1,7 +1,7 @@
 {
-  "name": "demo-nodejs",
+  "name": "product-management-backend",
   "version": "1.0.0",
-  "description": "A web demo project using NodeJS",
+  "description": "Product management API using NodeJS",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
@@ -9,7 +9,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/minhduc-mll/Demo-NodeJS.git"
+    "url": "git+https://github.com/minhduc-mll/Product-management.git"
   },
   "author": "minhduc.mll",
   "license": "ISC",

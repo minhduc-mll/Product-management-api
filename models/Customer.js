@@ -2,35 +2,30 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 const ObjectId = Schema.Types.ObjectId;
 
-const Customer = new Schema({
-    id: { type: Number, required: true },
-    zalo: { type: String, require: true },
-    phone: { type: String, require: true },
-    email: { type: String },
-    company: { type: String },
-    bankAccount: { type: String },
-    name: {
-        firstname: String,
-        lastname: String,
-    },
-    birhtday: Date,
-    address: {
-        city: String,
-        district: String,
-        full: String,
-        zipcode: String,
-        geolocation: {
-            lat: String,
-            lon: String,
+const CustomerSchema = new Schema(
+    {
+        phone: { type: String, require: true, unique: true },
+        image: { type: String, require: false },
+        name: { type: String, require: false },
+        email: { type: String, require: false },
+        birhtday: { type: Date, require: false },
+        company: { type: String, require: false },
+        bankAccount: { type: String, require: false },
+        address: {
+            city: String,
+            district: String,
+            full: String,
+            zipcode: String,
+            geolocation: {
+                lat: String,
+                lon: String,
+            },
         },
+        updatedBy: { type: ObjectId, ref: "User" },
     },
-    createdAt: { type: Date, default: Date.now },
-    modified: [
-        {
-            modifiedAt: { type: Date, default: Date.now },
-            modifiedBy: { type: ObjectId, ref: "User" },
-        },
-    ],
-});
+    {
+        timestamps: true,
+    }
+);
 
-module.exports = mongoose.model("Customer", Customer);
+module.exports = mongoose.model("Customer", CustomerSchema);

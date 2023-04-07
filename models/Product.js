@@ -1,0 +1,30 @@
+const mongoose = require("mongoose");
+const Schema = mongoose.Schema;
+const ObjectId = Schema.Types.ObjectId;
+
+const ProductSchema = new Schema(
+    {
+        productId: { type: String, require: true },
+        cover: { type: String, require: true, default: null },
+        images: { type: [String] },
+        customerId: { type: ObjectId, ref: "Customer", default: null },
+        sellerId: { type: ObjectId, ref: "User", default: null },
+        price: { type: Number, min: 0, default: 0 },
+        deposit: { type: Number, min: 0, default: 0 },
+        desc: { type: String },
+        port: { type: String },
+        status: {
+            type: String,
+            enum: ["pending", "sold", "done"],
+            default: "pending",
+        },
+        arrivalDate: { type: Date },
+        deliveryDate: { type: Date },
+        updatedBy: { type: ObjectId, ref: "User" },
+    },
+    {
+        timestamps: true,
+    }
+);
+
+module.exports = mongoose.model("Product", ProductSchema);

@@ -1,14 +1,14 @@
 const User = require("../models/User");
-const Container = require("../models/Container");
+const Product = require("../models/Product");
 const Customer = require("../models/Customer");
 
 const read = async (req, res) => {
     let queryString = {};
-    let lookUpContainer = {
-        from: "containers",
-        localField: "container",
+    let lookUpProduct = {
+        from: "products",
+        localField: "product",
         foreignField: "_id",
-        as: "container",
+        as: "product",
     };
     let lookUpCustomer = {
         from: "customers",
@@ -33,14 +33,14 @@ const read = async (req, res) => {
         queryString.startDate = req.query.usersQuery;
     }
 
-    if (req.query.usersType == "container" && req.query.usersQuery) {
+    if (req.query.usersType == "product" && req.query.usersQuery) {
         users = users
-            .lookup(lookUpContainer)
+            .lookup(lookUpProduct)
             .unwind({
                 preserveNullAndEmptyArrays: false,
-                path: "$container",
+                path: "$product",
             })
-            .match({ "container.code": req.query.usersQuery });
+            .match({ "product.code": req.query.usersQuery });
         queryString.usersType = req.query.usersType;
         queryString.usersQuery = req.query.usersQuery;
     }
@@ -93,13 +93,13 @@ const read = async (req, res) => {
     // // Inventory overview
     // let entries = Entry.aggregate()
     //     .match({ type: "user" })
-    //     .lookup(lookUpContainer)
+    //     .lookup(lookUpProduct)
     //     .unwind({
     //         preserveNullAndEmptyArrays: false,
-    //         path: "$container",
+    //         path: "$product",
     //     });
     // if (req.query.inventoryQuery) {
-    //     entries = entries.match({ "container.code": req.query.inventoryQuery });
+    //     entries = entries.match({ "product.code": req.query.inventoryQuery });
     //     queryString.inventoryQuery = req.query.inventoryQuery;
     // }
 
@@ -129,7 +129,7 @@ const read = async (req, res) => {
 
     // // Returns Overview
     // let allReturns = ReturnModel.aggregate()
-    //     .lookup(lookUpContainer)
+    //     .lookup(lookUpProduct)
     //     .lookup(lookUpCustomer)
     //     .unwind({
     //         preserveNullAndEmptyArrays: false,
@@ -137,7 +137,7 @@ const read = async (req, res) => {
     //     })
     //     .unwind({
     //         preserveNullAndEmptyArrays: false,
-    //         path: "$container",
+    //         path: "$product",
     //     });
     // if (req.query.startDateReturns) {
     //     allReturns = allReturns.match({

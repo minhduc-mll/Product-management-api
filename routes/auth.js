@@ -1,14 +1,16 @@
 const express = require("express");
 const router = express.Router();
 const AuthController = require("../controllers/AuthController");
-const AuthHandler = require("../middlewares/AuthHandler");
+const { verifyByCookies } = require("../middlewares/AuthHandler");
 
-router.get("/", AuthController.read);
+router.get("/", verifyByCookies);
+
+router.post("/register", AuthController.register);
 
 router.post("/login", AuthController.login);
 
-router.get("/logout", AuthHandler, AuthController.logout);
+router.post("/logout",  AuthController.logout);
 
-router.post("/change_password", AuthHandler, AuthController.changePassword);
+router.post("/change_password", verifyByCookies, AuthController.changePassword);
 
 module.exports = router;

@@ -2,18 +2,26 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 const ObjectId = Schema.Types.ObjectId;
 
-const User = new Schema({
-    id: { type: Number, required: true },
-    username: { type: String, require: true, unique: true },
-    password: { type: String, require: true },
-    name: {
-        firstname: { type: String, require: true },
-        lastname: { type: String, require: true },
+const UserSchema = new Schema(
+    {
+        id: { type: Number, required: true, unique: true },
+        username: { type: String, require: true, unique: true },
+        password: { type: String, require: true },
+        image: { type: String, require: false },
+        name: { type: String, require: false },
+        phone: { type: String, require: false },
+        email: { type: String, require: false },
+        birthday: { type: Date, require: false },
+        role: {
+            type: String,
+            require: true,
+            enum: ["sale", "manager", "mod", "admin"],
+            default: "sale",
+        },
     },
-    phone: { type: String, require: true },
-    email: { type: String, require: true },
-    role: { type: ObjectId, ref: "Role", require: true },
-    createdAt: { type: Date, default: Date.now },
-});
+    {
+        timestamps: true,
+    }
+);
 
-module.exports = mongoose.model("User", User);
+module.exports = mongoose.model("User", UserSchema);

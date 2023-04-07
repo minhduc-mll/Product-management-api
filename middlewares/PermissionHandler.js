@@ -1,50 +1,63 @@
-const Role = require("../models/Role");
-
-const verifyAdmin = async (req, res, next) => {
-    console.log(req.user);
+const verifySale = async (req, res, next) => {
     try {
-        // Find user role
-        const userRole = await Role.findById(req.user.role);
-        if (userRole == null) {
-            return res.status(500).json({
-                message: "Role not found",
-            });
-        }
-        // Check if the user role admin
-        if (userRole.rolename !== "admin") {
+        // Check the user role
+        if (req.role !== "sale") {
             return res.status(403).json({
-                message: "User don't have permission",
+                message: "User don't have permission!",
             });
         }
         next();
     } catch (err) {
-        console.error(err);
+        return res.status(500).json("Something went wrong!");
     }
 };
 
-const verifySale = async (req, res, next) => {
-    console.log(req.user);
+const verifyManager = async (req, res, next) => {
     try {
-        // Find user role
-        const userRole = await Role.findById(req.user.role);
-        if (userRole == null) {
-            return res.status(500).json({
-                message: "Role not found",
-            });
-        }
-        // Check if the user role admin
-        if (userRole.rolename !== "sale") {
+        // Check the user role
+        if (req.role !== "manager") {
             return res.status(403).json({
-                message: "User don't have permission",
+                message: "User don't have permission!",
             });
         }
         next();
     } catch (err) {
-        console.error(err);
+        return res.status(500).json("Something went wrong!");
+    }
+};
+
+const verifyMod = async (req, res, next) => {
+    try {
+        // Check the user role
+        if (req.role !== "mod") {
+            return res.status(403).json({
+                message: "User don't have permission!",
+            });
+        }
+        next();
+    } catch (err) {
+        return res.status(500).json("Something went wrong!");
+    }
+};
+
+const verifyAdmin = async (req, res, next) => {
+    try {
+        console.log(req.role !== "admin");
+        // Check the user role
+        if (req.role !== "admin" && req.role !== "mod") {
+            return res.status(403).json({
+                message: "User don't have permission!",
+            });
+        }
+        next();
+    } catch (err) {
+        return res.status(500).json("Something went wrong!");
     }
 };
 
 module.exports = {
-    verifyAdmin,
     verifySale,
+    verifyManager,
+    verifyMod,
+    verifyAdmin,
 };

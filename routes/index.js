@@ -3,17 +3,17 @@ const router = express.Router();
 const authRouter = require("./auth");
 const userRouter = require("./user");
 const roleRouter = require("./role");
-const containerRouter = require("./container");
+const productRouter = require("./product");
 const customerRouter = require("./customer");
 const dashboardRouter = require("./dashboard");
-const PermissionHandler = require("../middlewares/PermissionHandler");
-const AuthHandler = require("../middlewares/AuthHandler");
+const { verifyByCookies } = require("../middlewares/AuthHandler");
 
-router.use("/", authRouter);
-router.use("/dashboard", AuthHandler, dashboardRouter);
-router.use("/users", AuthHandler, userRouter);
-router.use("/roles", AuthHandler, roleRouter);
-router.use("/containers", AuthHandler, containerRouter);
-router.use("/customers", AuthHandler, customerRouter);
+router.use("/auth", authRouter);
+router.use("/", verifyByCookies, dashboardRouter);
+router.use("/dashboard", verifyByCookies, dashboardRouter);
+router.use("/users", verifyByCookies, userRouter);
+router.use("/roles", verifyByCookies, roleRouter);
+router.use("/products", verifyByCookies, productRouter);
+router.use("/customers", verifyByCookies, customerRouter);
 
 module.exports = router;

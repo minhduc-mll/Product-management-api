@@ -8,7 +8,7 @@ const CustomerSchema = new Schema(
         image: { type: String, require: false },
         name: { type: String, require: false },
         email: { type: String, require: false },
-        birhtday: { type: Date, require: false },
+        birthday: { type: Date, require: false },
         company: { type: String, require: false },
         bankAccount: { type: String, require: false },
         address: {

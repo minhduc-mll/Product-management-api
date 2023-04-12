@@ -67,6 +67,7 @@ const createUser = async (req, res) => {
             }
             const newUser = new User({
                 id: count + 1,
+                image: req.image,
                 ...req.body,
             });
             await newUser.save();
@@ -88,7 +89,7 @@ const updateUser = async (req, res) => {
         }
         // If username not exist, find user and update
         await User.findOneAndUpdate(
-            { id: req.params.id },
+            { _id: req.params.id },
             {
                 $set: {
                     ...req.body,
@@ -105,7 +106,7 @@ const deleteUser = async (req, res) => {
     try {
         // Find user and delete
         const user = await User.findOneAndDelete({
-            id: req.params.id,
+            _id: req.params.id,
         });
         return res.status(200).json(user);
     } catch (err) {

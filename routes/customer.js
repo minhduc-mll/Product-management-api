@@ -1,11 +1,18 @@
 const express = require("express");
 const router = express.Router();
 const CustomerController = require("../controllers/CustomerController");
+const multer = require("../middlewares/multer");
+const { cloudinaryUpload } = require("../middlewares/CloudinaryUpload");
 
 router.get("/", CustomerController.getAllCustomer);
 router.get("/:id", CustomerController.getCustomer);
 
-router.post("/", CustomerController.createCustomer);
+router.post(
+    "/",
+    multer.single("image"),
+    cloudinaryUpload,
+    CustomerController.createCustomer
+);
 
 router.put("/:id", CustomerController.updateCustomer);
 router.patch("/:id", CustomerController.updateCustomer);

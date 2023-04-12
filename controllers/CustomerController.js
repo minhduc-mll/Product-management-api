@@ -49,10 +49,10 @@ const getCustomer = async (req, res) => {
 };
 
 const createCustomer = async (req, res) => {
+    if (!req.body.phone) {
+        return res.status(400).json({ message: "Missing input" });
+    }
     try {
-        if (!req.body.phone) {
-            return res.status(400).json({ message: "Missing input" });
-        }
         // Find if customer already exists
         const customerExists = await Customer.findOne({
             phone: req.body.phone,
@@ -65,6 +65,7 @@ const createCustomer = async (req, res) => {
         // If customer not exist, add new customer
         const newCustomer = new Customer({
             updatedBy: req.userId,
+            image: req.image,
             ...req.body,
         });
         await newCustomer.save();

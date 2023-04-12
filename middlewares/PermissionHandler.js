@@ -42,7 +42,6 @@ const verifyMod = async (req, res, next) => {
 
 const verifyAdmin = async (req, res, next) => {
     try {
-        console.log(req.role !== "admin");
         // Check the user role
         if (req.role !== "admin" && req.role !== "mod") {
             return res.status(403).json({

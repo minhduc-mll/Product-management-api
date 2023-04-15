@@ -1,4 +1,6 @@
 const Product = require("../models/Product");
+const User = require("../models/User");
+const Customer = require("../models/Customer");
 
 const getAllProducts = async (req, res) => {
     const q = req.query;
@@ -52,6 +54,54 @@ const getAllProducts = async (req, res) => {
     }
 };
 
+const getProductsBySellerId = async (req, res) => {
+    try {
+        // Find seller by sellerId
+        const seller = await User.findOne({
+            _id: req.params.sellerId,
+        }).select({ __v: 0 });
+        if (!seller) {
+            return res.status(404).json("Seller not found");
+        }
+        // Get product by id
+        const products = await Product.find({
+            sellerId: seller._id,
+        }).select({ __v: 0 });
+        if (!products) {
+            return res
+                .status(404)
+                .json("This seller does not have any product");
+        }
+        return res.status(200).json(products);
+    } catch (err) {
+        return res.status(500).json(err.message);
+    }
+};
+
+const getProductsByCustomerId = async (req, res) => {
+    try {
+        // Find customer by customerId
+        const customer = await Customer.findOne({
+            _id: req.params.customerId,
+        }).select({ __v: 0 });
+        if (!customer) {
+            return res.status(404).json("Customer not found");
+        }
+        // Get product by id
+        const products = await Product.find({
+            customerId: customer._id,
+        }).select({ __v: 0 });
+        if (!products) {
+            return res
+                .status(404)
+                .json("This customer does not have any product");
+        }
+        return res.status(200).json(products);
+    } catch (err) {
+        return res.status(500).json(err.message);
+    }
+};
+
 const getProduct = async (req, res) => {
     try {
         // Get product by id
@@ -95,6 +145,15 @@ const createProduct = async (req, res) => {
 
 const updateProduct = async (req, res) => {
     try {
+        // Find if product already exists
+        const productExists = await Product.findOne({
+            productId: req.body.productId,
+        });
+        if (productExists) {
+            return res.status(409).json({
+                message: "Product exists.",
+            });
+        }
         // Find product and update
         await Product.findOneAndUpdate(
             { productId: req.params.productId },
@@ -123,10 +182,119 @@ const deleteProduct = async (req, res) => {
     }
 };
 
+const getTotalDeposit = async (req, res) => {
+    try {
+        // Get total deposit of sold products
+        const totalDepositSold = await Product.aggregate([
+            { $match: { status: "sold" } },
+            { $group: { _id: "$status", total: { $sum: "$deposit" } } },
+        ]).exec();
+        return res.status(200).json(totalDepositSold[0].total);
+    } catch (err) {
+        return res.status(500).json(err.message);
+    }
+};
+
+const countProducts = async (req, res) => {
+    try {
+        // Count all products
+        const count = await Product.countDocuments().exec();
+        return res.status(200).json(count);
+    } catch (err) {
+        return res.status(500).json(err.message);
+    }
+};
+
+const countProductsByMonth = async (req, res) => {
+    try {
+        // Count products by month
+        const countProductsByMonth = await Product.aggregate([
+            {
+                $group: {
+                    _id: { month: { $month: "$createdAt" } },
+                    count: { $sum: 1 },
+                },
+            },
+        ])
+            .sort({ month: 1 })
+            .exec();
+        return res.status(200).json(countProductsByMonth);
+    } catch (err) {
+        return res.status(500).json(err.message);
+    }
+};
+
+const countSellerProductsByMonth = async (req, res) => {
+    try {
+        // Find seller by sellerId
+        const seller = await User.findOne({
+            _id: req.params.sellerId,
+        }).select({ __v: 0 });
+        if (!seller) {
+            return res.status(404).json("Seller not found");
+        }
+        // Count seller products by month
+        const countSellerProductsByMonth = await Product.aggregate([
+            { $match: { sellerId: seller._id } },
+            {
+                $group: {
+                    _id: {
+                        month: { $month: "$createdAt" },
+                        sellerId: "$sellerId",
+                    },
+                    count: { $sum: 1 },
+                },
+            },
+        ])
+            .sort({ month: 1 })
+            .exec();
+        return res.status(200).json(countSellerProductsByMonth);
+    } catch (err) {
+        return res.status(500).json(err.message);
+    }
+};
+
+const countCustomerProductsByMonth = async (req, res) => {
+    try {
+        // Find customer by customerId
+        const customer = await Customer.findOne({
+            _id: req.params.customerId,
+        }).select({ __v: 0 });
+        if (!customer) {
+            return res.status(404).json("Customer not found");
+        }
+        // Count customer products by month
+        const countCustomerProductsByMonth = await Product.aggregate([
+            { $match: { customerId: customer._id } },
+            {
+                $group: {
+                    _id: {
+                        month: { $month: "$createdAt" },
+                        customerId: "$customerId",
+                    },
+                    count: { $sum: 1 },
+                },
+            },
+        ])
+            .sort({ month: 1 })
+            .exec();
+        return res.status(200).json(countCustomerProductsByMonth);
+    } catch (err) {
+        return res.status(500).json(err.message);
+    }
+};
+
 module.exports = {
     getAllProducts,
+    getProductsBySellerId,
+    getProductsByCustomerId,
     getProduct,
     createProduct,
     updateProduct,
     deleteProduct,
+    countProducts,
+    getTotalDeposit,
+    countProductsByMonth,
+    countSellerProductsByMonth,
+    countCustomerProductsByMonth,
 };

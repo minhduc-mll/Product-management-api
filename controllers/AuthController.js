@@ -30,6 +30,7 @@ const register = async (req, res) => {
             username: username,
             email: email,
             password: hashPassword,
+            ...req.body,
         });
         return res.status(201).json(newUser);
     } catch (err) {

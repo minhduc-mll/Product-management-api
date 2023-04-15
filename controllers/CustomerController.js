@@ -23,7 +23,7 @@ const getAllCustomer = async (req, res) => {
         const customers = await Customer.find(filters)
             .select({ __v: 0 })
             .limit(q.limit)
-            .sort({ [q.sort]: 1, id: 1 });
+            .sort({ [q.sort]: 1, createdAt: -1 });
         if (!customers) {
             return res.status(404).json("Customer not found");
         }
@@ -114,10 +114,21 @@ const deleteCustomer = async (req, res) => {
     }
 };
 
+const countCustomers = async (req, res) => {
+    try {
+        // Count all customer
+        const count = await Customer.countDocuments().exec();
+        return res.status(200).json(count);
+    } catch (err) {
+        return res.status(500).json(err.message);
+    }
+};
+
 module.exports = {
     getAllCustomer,
     getCustomer,
     createCustomer,
     updateCustomer,
     deleteCustomer,
+    countCustomers,
 };

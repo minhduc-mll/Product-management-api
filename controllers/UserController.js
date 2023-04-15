@@ -114,10 +114,21 @@ const deleteUser = async (req, res) => {
     }
 };
 
+const countUsers = async (req, res) => {
+    try {
+        // Count all user
+        const count = await User.countDocuments().exec();
+        return res.status(200).json(count);
+    } catch (err) {
+        return res.status(500).json(err.message);
+    }
+};
+
 module.exports = {
     getAllUser,
     getUser,
     createUser,
     updateUser,
     deleteUser,
+    countUsers,
 };

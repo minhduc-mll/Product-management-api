@@ -1,4 +1,5 @@
 const Event = require("../models/Event");
+const Product = require("../models/Product");
 
 const getAllEvent = async (req, res) => {
     const q = req.query;
@@ -93,10 +94,77 @@ const deleteEvent = async (req, res) => {
     }
 };
 
+const getProductArrivalEvent = async (req, res) => {
+    try {
+        // Get products have arrival events
+        const products = await Product.find({
+            arrivalDate: { $ne: null },
+        })
+            .select({ _id: 1, productId: 1, arrivalDate: 1 })
+            .exec();
+        if (!products) {
+            return res.status(404).json("Product not found");
+        }
+        const events = products.map((product) => {
+            return {
+                title: product.productId,
+                allDay: true,
+                start: product.arrivalDate,
+            };
+        });
+        return res.status(200).json(events);
+    } catch (err) {
+        return res.status(500).json(err.message);
+    }
+};
+
+const getProductArrivalEventByProductId = async (req, res) => {
+    try {
+        // Get product have arrival events with product id
+        const product = await Product.findOne({
+            productId: req.params.productId,
+        })
+            .select({ _id: 1, productId: 1, arrivalDate: 1 })
+            .exec();
+        if (!product) {
+            return res.status(404).json("Product not found");
+        }
+        if (!product.arrivalDate) {
+            return res.status(200).json(null);
+        }
+        const event = {
+            title: product.productId,
+            allDay: true,
+            start: product.arrivalDate,
+        };
+        return res.status(200).json(event);
+    } catch (err) {
+        return res.status(500).json(err.message);
+    }
+};
+
+const getProductArrivalEventByMonth = async (req, res) => {
+    try {
+        // Get products have arrival events
+        const products = await Product.aggregate([
+            { $group: { _id: "$_id", title: "$productId" } },
+        ]).exec();
+        if (!products) {
+            return res.status(404).json("Product not found");
+        }
+        return res.status(200).json(products);
+    } catch (err) {
+        return res.status(500).json(err.message);
+    }
+};
+
 module.exports = {
     getAllEvent,
     getEvent,
     createEvent,
     updateEvent,
     deleteEvent,
+    getProductArrivalEvent,
+    getProductArrivalEventByProductId,
+    getProductArrivalEventByMonth,
 };

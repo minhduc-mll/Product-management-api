@@ -2,44 +2,35 @@ const express = require("express");
 const router = express.Router();
 const { verifyAdmin } = require("../middlewares/PermissionHandler");
 const { countUsers } = require("../controllers/UserController");
-const {
-    countProducts,
-    getTotalDeposit,
-    countProductsByMonth,
-    countSellerProductsByMonth,
-    countCustomerProductsByMonth,
-} = require("../controllers/ProductController");
 const { countCustomers } = require("../controllers/CustomerController");
-const {
-    getProductArrivalEvent,
-    getProductArrivalEventByMonth,
-    getProductArrivalEventByProductId,
-} = require("../controllers/EventController");
+const ProductController = require("../controllers/ProductController");
 
 router.get("/users", verifyAdmin, countUsers);
 
-router.get("/products", verifyAdmin, countProducts);
-
 router.get("/customers", verifyAdmin, countCustomers);
 
-router.get("/totalDeposit", verifyAdmin, getTotalDeposit);
+router.get("/totalDeposit", verifyAdmin, ProductController.getTotalDeposit);
 
-router.get("/productsByMonth", countProductsByMonth);
+router.get("/products", verifyAdmin, ProductController.countProducts);
 
-router.get("/userProductsByMonth/:sellerId", countSellerProductsByMonth);
+router.get(
+    "/productsMonth/:month",
+    verifyAdmin,
+    ProductController.countProductsMonth
+);
+
+router.get("/productsByMonth", ProductController.countProductsByMonth);
+
+router.get(
+    "/userProductsByMonth/:sellerId",
+    ProductController.countSellerProductsByMonth
+);
 
 router.get(
     "/customerProductsByMonth/:customerId",
-    countCustomerProductsByMonth
+    ProductController.countCustomerProductsByMonth
 );
 
-router.get("/productArrivalEvent", getProductArrivalEvent);
-
-router.get(
-    "/productArrivalEvent/:productId",
-    getProductArrivalEventByProductId
-);
-
-router.get("/productArrivalEventByMonth", getProductArrivalEventByMonth);
+router.get("/productsInStock", ProductController.countProductsInStock);
 
 module.exports = router;

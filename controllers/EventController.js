@@ -94,24 +94,101 @@ const deleteEvent = async (req, res) => {
     }
 };
 
-const getProductArrivalEvent = async (req, res) => {
+const getProductEvents = async (req, res) => {
     try {
-        // Get products have arrival events
-        const products = await Product.find({
+        // Get products have arrival events and delivery events
+        const arrivalProducts = await Product.find({
             arrivalDate: { $ne: null },
         })
             .select({ _id: 1, productId: 1, arrivalDate: 1 })
             .exec();
-        if (!products) {
+        const deliveryProducts = await Product.find({
+            deliveryDate: { $ne: null },
+        })
+            .select({ _id: 1, productId: 1, arrivalDate: 1 })
+            .exec();
+
+        let events = [];
+        events.push(
+            ...arrivalProducts.map((product) => {
+                return {
+                    title: product.productId,
+                    allDay: true,
+                    start: product.arrivalDate,
+                };
+            })
+        );
+        events.push(
+            ...deliveryProducts.map((product) => {
+                return {
+                    title: product.productId,
+                    allDay: true,
+                    start: product.arrivalDate,
+                    backgroundColor: "dodgerblue",
+                    borderColor: "dodgerblue",
+                };
+            })
+        );
+        return res.status(200).json(events);
+    } catch (err) {
+        return res.status(500).json(err.message);
+    }
+};
+
+const getProductEventByProductId = async (req, res) => {
+    try {
+        // Get product have arrival events with product id
+        const product = await Product.findOne({
+            productId: req.params.productId,
+        })
+            .select({ _id: 1, productId: 1, arrivalDate: 1, deliveryDate: 1 })
+            .exec();
+        if (!product) {
             return res.status(404).json("Product not found");
         }
-        const events = products.map((product) => {
-            return {
-                title: product.productId,
+
+        let events = [];
+        if (product?.arrivalDate) {
+            events.push({
+                title: product?.productId,
                 allDay: true,
-                start: product.arrivalDate,
-            };
-        });
+                start: product?.arrivalDate,
+            });
+        }
+        if (product?.deliveryDate) {
+            events.push({
+                title: product?.productId,
+                allDay: true,
+                start: product?.deliveryDate,
+                backgroundColor: "dodgerblue",
+                borderColor: "dodgerblue",
+            });
+        }
+        return res.status(200).json(events);
+    } catch (err) {
+        return res.status(500).json(err.message);
+    }
+};
+
+const getProductArrivalEvents = async (req, res) => {
+    try {
+        // Get products have arrival events and delivery events
+        const arrivalProducts = await Product.find({
+            arrivalDate: { $ne: null },
+        })
+            .select({ _id: 1, productId: 1, arrivalDate: 1 })
+            .exec();
+
+        let events = [];
+        events.push(
+            ...arrivalProducts.map((product) => {
+                return {
+                    title: product.productId,
+                    allDay: true,
+                    start: product.arrivalDate,
+                };
+            })
+        );
         return res.status(200).json(events);
     } catch (err) {
         return res.status(500).json(err.message);
@@ -129,30 +206,16 @@ const getProductArrivalEventByProductId = async (req, res) => {
         if (!product) {
             return res.status(404).json("Product not found");
         }
-        if (!product.arrivalDate) {
-            return res.status(200).json(null);
-        }
-        const event = {
-            title: product.productId,
-            allDay: true,
-            start: product.arrivalDate,
-        };
-        return res.status(200).json(event);
-    } catch (err) {
-        return res.status(500).json(err.message);
-    }
-};
 
-const getProductArrivalEventByMonth = async (req, res) => {
-    try {
-        // Get products have arrival events
-        const products = await Product.aggregate([
-            { $group: { _id: "$_id", title: "$productId" } },
-        ]).exec();
-        if (!products) {
-            return res.status(404).json("Product not found");
+        let events = [];
+        if (product?.arrivalDate) {
+            events.push({
+                title: product?.productId,
+                allDay: true,
+                start: product?.arrivalDate,
+            });
         }
-        return res.status(200).json(products);
+        return res.status(200).json(events);
     } catch (err) {
         return res.status(500).json(err.message);
     }
@@ -164,7 +227,8 @@ module.exports = {
     createEvent,
     updateEvent,
     deleteEvent,
-    getProductArrivalEvent,
+    getProductEvents,
+    getProductEventByProductId,
+    getProductArrivalEvents,
     getProductArrivalEventByProductId,
-    getProductArrivalEventByMonth,
 };

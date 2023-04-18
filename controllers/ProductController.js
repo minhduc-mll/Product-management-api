@@ -205,6 +205,21 @@ const countProducts = async (req, res) => {
     }
 };
 
+const countProductsMonth = async (req, res) => {
+    try {
+        const month = parseInt(req.params.month);
+        // Count products by month
+        const countProductsMonth = await Product.countDocuments({
+            $expr: {
+                $eq: [{ $month: "$arrivalDate" }, month],
+            },
+        }).exec();
+        return res.status(200).json(countProductsMonth);
+    } catch (err) {
+        return res.status(500).json(err.message);
+    }
+};
+
 const countProductsByMonth = async (req, res) => {
     try {
         // Count products by month
@@ -215,9 +230,8 @@ const countProductsByMonth = async (req, res) => {
                     count: { $sum: 1 },
                 },
             },
-        ])
-            .sort({ month: 1 })
-            .exec();
+            { $sort: { month: 1 } },
+        ]).exec();
         return res.status(200).json(countProductsByMonth);
     } catch (err) {
         return res.status(500).json(err.message);
@@ -245,9 +259,8 @@ const countSellerProductsByMonth = async (req, res) => {
                     count: { $sum: 1 },
                 },
             },
-        ])
-            .sort({ month: 1 })
-            .exec();
+            { $sort: { month: 1 } },
+        ]).exec();
         return res.status(200).json(countSellerProductsByMonth);
     } catch (err) {
         return res.status(500).json(err.message);
@@ -275,10 +288,21 @@ const countCustomerProductsByMonth = async (req, res) => {
                     count: { $sum: 1 },
                 },
             },
-        ])
-            .sort({ month: 1 })
-            .exec();
+            { $sort: { month: 1 } },
+        ]).exec();
         return res.status(200).json(countCustomerProductsByMonth);
+    } catch (err) {
+        return res.status(500).json(err.message);
+    }
+};
+
+const countProductsInStock = async (req, res) => {
+    try {
+        // Count all products
+        const count = await Product.countDocuments({
+            status: "pending",
+        }).exec();
+        return res.status(200).json(count);
     } catch (err) {
         return res.status(500).json(err.message);
     }
@@ -292,9 +316,11 @@ module.exports = {
     createProduct,
     updateProduct,
     deleteProduct,
-    countProducts,
     getTotalDeposit,
+    countProducts,
+    countProductsMonth,
     countProductsByMonth,
     countSellerProductsByMonth,
     countCustomerProductsByMonth,
+    countProductsInStock,
 };

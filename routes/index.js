@@ -7,6 +7,7 @@ const roleRouter = require("./role");
 const productRouter = require("./product");
 const customerRouter = require("./customer");
 const eventRouter = require("./event");
+const productEventRouter = require("./productEvent");
 const analysRouter = require("./analys");
 const { verifyByCookies } = require("../middlewares/AuthHandler");
 
@@ -18,6 +19,7 @@ router.use("/roles", verifyByCookies, roleRouter);
 router.use("/products", verifyByCookies, productRouter);
 router.use("/customers", verifyByCookies, customerRouter);
 router.use("/events", verifyByCookies, eventRouter);
+router.use("/productevent", verifyByCookies, productEventRouter);
 router.use("/analys", verifyByCookies, analysRouter);
 
 module.exports = router;

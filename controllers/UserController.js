@@ -48,6 +48,21 @@ const getUser = async (req, res) => {
     }
 };
 
+const getUserByUsername = async (req, res) => {
+    try {
+        // Get user by id
+        const user = await User.findOne({
+            username: req.params.username,
+        }).select({ __v: 0, password: 0 });
+        if (!user) {
+            return res.status(404).json("User not found");
+        }
+        return res.status(200).json(user);
+    } catch (err) {
+        return res.status(500).json(err.message);
+    }
+};
+
 const createUser = async (req, res) => {
     if (!req.body.username || !req.body.password) {
         return res.status(400).json("Missing input");
@@ -127,6 +142,7 @@ const countUsers = async (req, res) => {
 module.exports = {
     getAllUser,
     getUser,
+    getUserByUsername,
     createUser,
     updateUser,
     deleteUser,

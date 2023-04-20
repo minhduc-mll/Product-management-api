@@ -1,6 +1,7 @@
 const Product = require("../models/Product");
 const User = require("../models/User");
 const Customer = require("../models/Customer");
+const Category = require("../models/Category");
 
 const getAllProducts = async (req, res) => {
     const q = req.query;
@@ -47,6 +48,30 @@ const getAllProducts = async (req, res) => {
             .sort({ [q.sort]: -1, status: -1, timeArrived: -1, createdAt: -1 });
         if (!products) {
             return res.status(404).json("Product not found");
+        }
+        return res.status(200).json(products);
+    } catch (err) {
+        return res.status(500).json(err.message);
+    }
+};
+
+const getProductsByCategoryId = async (req, res) => {
+    try {
+        // Find category by categoryId
+        const category = await Category.findOne({
+            _id: req.params.categoryId,
+        }).select({ __v: 0 });
+        if (!category) {
+            return res.status(404).json("Category not found");
+        }
+        // Get product by id
+        const products = await Product.find({
+            categoryId: category._id,
+        }).select({ __v: 0 });
+        if (!products) {
+            return res
+                .status(404)
+                .json("This category does not have any product");
         }
         return res.status(200).json(products);
     } catch (err) {
@@ -119,7 +144,7 @@ const getProduct = async (req, res) => {
 
 const createProduct = async (req, res) => {
     try {
-        if (!req.body.productId) {
+        if (!req.body.productId || !req.body.categoryId) {
             return res.status(400).json({ message: "Missing input" });
         }
         // Find if product already exists
@@ -308,8 +333,28 @@ const countProductsInStock = async (req, res) => {
     }
 };
 
+const countProductsInCategory = async (req, res) => {
+    try {
+        // Find category by categoryId
+        const category = await Category.findOne({
+            _id: req.params.categoryId,
+        }).select({ __v: 0 });
+        if (!category) {
+            return res.status(404).json("Category not found");
+        }
+        // Count all products
+        const count = await Product.countDocuments({
+            categoryId: category._id,
+        }).exec();
+        return res.status(200).json(count);
+    } catch (err) {
+        return res.status(500).json(err.message);
+    }
+};
+
 module.exports = {
     getAllProducts,
+    getProductsByCategoryId,
     getProductsBySellerId,
     getProductsByCustomerId,
     getProduct,
@@ -323,4 +368,5 @@ module.exports = {
     countSellerProductsByMonth,
     countCustomerProductsByMonth,
     countProductsInStock,
+    countProductsInCategory,
 };

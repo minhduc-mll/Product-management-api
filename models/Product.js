@@ -7,6 +7,7 @@ const ProductSchema = new Schema(
         productId: { type: String, require: true },
         cover: { type: String, require: true, default: null },
         images: { type: [String] },
+        categoryId: { type: ObjectId, ref: "Category", require: true },
         customerId: { type: ObjectId, ref: "Customer", default: null },
         sellerId: { type: ObjectId, ref: "User", default: null },
         price: { type: Number, min: 0, default: 0 },

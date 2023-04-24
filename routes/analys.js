@@ -16,7 +16,7 @@ router.get("/totalDeposit", verifyAdmin, ProductController.getTotalDeposit);
 
 router.get("/products", ProductController.countProducts);
 
-router.get("/productsMonth/:month", ProductController.countProductsMonth);
+router.get("/productsMonth", ProductController.countProductsMonth);
 
 router.get("/productsByMonth", ProductController.countProductsByMonth);
 
@@ -36,5 +36,15 @@ router.get(
 );
 
 router.get("/productsInStock", ProductController.countProductsInStock);
+
+router.get(
+    "/productsPerUserByMonth",
+    ProductController.getProductsPerSellerByMonth
+);
+
+router.get(
+    "/productsPerCategoryByMonth",
+    ProductController.getProductsPerCategoryByMonth
+);
 
 module.exports = router;

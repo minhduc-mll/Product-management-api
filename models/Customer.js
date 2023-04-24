@@ -21,6 +21,7 @@ const CustomerSchema = new Schema(
                 lon: String,
             },
         },
+        userId: { type: ObjectId, ref: "User" },
         updatedBy: { type: ObjectId, ref: "User" },
     },
     {

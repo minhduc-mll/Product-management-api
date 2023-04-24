@@ -105,7 +105,7 @@ const getProductEvents = async (req, res) => {
         const deliveryProducts = await Product.find({
             deliveryDate: { $ne: null },
         })
-            .select({ _id: 1, productId: 1, arrivalDate: 1 })
+            .select({ _id: 1, productId: 1, deliveryDate: 1 })
             .exec();
 
         let events = [];
@@ -116,14 +116,12 @@ const getProductEvents = async (req, res) => {
                     allDay: true,
                     start: product.arrivalDate,
                 };
-            })
-        );
-        events.push(
+            }),
             ...deliveryProducts.map((product) => {
                 return {
                     title: product.productId,
                     allDay: true,
-                    start: product.arrivalDate,
+                    start: product.deliveryDate,
                     backgroundColor: "dodgerblue",
                     borderColor: "dodgerblue",
                 };

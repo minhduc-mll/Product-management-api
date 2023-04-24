@@ -65,6 +65,7 @@ const createCustomer = async (req, res) => {
         // If customer not exist, add new customer
         const newCustomer = new Customer({
             updatedBy: req.userId,
+            userId: req.userId,
             image: req.image,
             ...req.body,
         });

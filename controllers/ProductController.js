@@ -2,6 +2,7 @@ const Product = require("../models/Product");
 const User = require("../models/User");
 const Customer = require("../models/Customer");
 const Category = require("../models/Category");
+const { monthNames } = require("../middlewares/i18n");
 
 const getAllProducts = async (req, res) => {
     const q = req.query;
@@ -40,12 +41,14 @@ const getAllProducts = async (req, res) => {
         }),
     };
 
+    const dsc = q.sortOrder === "dsc" ? -1 : 1;
+
     try {
         // Get all products with filters
         const products = await Product.find(filters)
             .select({ __v: 0 })
             .limit(q.limit)
-            .sort({ [q.sort]: -1, status: -1, timeArrived: -1, createdAt: -1 });
+            .sort({ [q.sortName]: dsc });
         if (!products) {
             return res.status(404).json("Product not found");
         }
@@ -56,6 +59,8 @@ const getAllProducts = async (req, res) => {
 };
 
 const getProductsByCategoryId = async (req, res) => {
+    const q = req.query;
+    const dsc = q.sortOrder === "dsc" ? -1 : 1;
     try {
         // Find category by categoryId
         const category = await Category.findOne({
@@ -67,7 +72,10 @@ const getProductsByCategoryId = async (req, res) => {
         // Get product by id
         const products = await Product.find({
             categoryId: category._id,
-        }).select({ __v: 0 });
+        })
+            .select({ __v: 0 })
+            .limit(q.limit)
+            .sort({ [q.sortName]: dsc, createdAt: -1 });
         if (!products) {
             return res
                 .status(404)
@@ -80,6 +88,8 @@ const getProductsByCategoryId = async (req, res) => {
 };
 
 const getProductsBySellerId = async (req, res) => {
+    const q = req.query;
+    const dsc = q.sortOrder === "dsc" ? -1 : 1;
     try {
         // Find seller by sellerId
         const seller = await User.findOne({
@@ -91,7 +101,10 @@ const getProductsBySellerId = async (req, res) => {
         // Get product by id
         const products = await Product.find({
             sellerId: seller._id,
-        }).select({ __v: 0 });
+        })
+            .select({ __v: 0 })
+            .limit(q.limit)
+            .sort({ [q.sortName]: dsc, createdAt: -1 });
         if (!products) {
             return res
                 .status(404)
@@ -104,6 +117,8 @@ const getProductsBySellerId = async (req, res) => {
 };
 
 const getProductsByCustomerId = async (req, res) => {
+    const q = req.query;
+    const dsc = q.sortOrder === "dsc" ? -1 : 1;
     try {
         // Find customer by customerId
         const customer = await Customer.findOne({
@@ -115,7 +130,10 @@ const getProductsByCustomerId = async (req, res) => {
         // Get product by id
         const products = await Product.find({
             customerId: customer._id,
-        }).select({ __v: 0 });
+        })
+            .select({ __v: 0 })
+            .limit(q.limit)
+            .sort({ [q.sortName]: dsc, createdAt: -1 });
         if (!products) {
             return res
                 .status(404)
@@ -211,8 +229,15 @@ const getTotalDeposit = async (req, res) => {
     try {
         // Get total deposit of sold products
         const totalDepositSold = await Product.aggregate([
-            { $match: { status: "sold" } },
-            { $group: { _id: "$status", total: { $sum: "$deposit" } } },
+            {
+                $match: { status: "sold" },
+            },
+            {
+                $group: {
+                    _id: "$status",
+                    total: { $sum: "$deposit" },
+                },
+            },
         ]).exec();
         return res.status(200).json(totalDepositSold[0].total);
     } catch (err) {
@@ -232,11 +257,16 @@ const countProducts = async (req, res) => {
 
 const countProductsMonth = async (req, res) => {
     try {
-        const month = parseInt(req.params.month);
+        const month = parseInt(req.query.month) || new Date().getMonth() + 1;
+        const year = parseInt(req.query.year) || new Date().getFullYear();
+
         // Count products by month
         const countProductsMonth = await Product.countDocuments({
             $expr: {
-                $eq: [{ $month: "$arrivalDate" }, month],
+                $and: [
+                    { $eq: [{ $month: "$arrivalDate" }, month] },
+                    { $eq: [{ $year: "$arrivalDate" }, year] },
+                ],
             },
         }).exec();
         return res.status(200).json(countProductsMonth);
@@ -247,17 +277,36 @@ const countProductsMonth = async (req, res) => {
 
 const countProductsByMonth = async (req, res) => {
     try {
+        const year = parseInt(req.query.year) || new Date().getFullYear();
+
         // Count products by month
         const countProductsByMonth = await Product.aggregate([
             {
-                $group: {
-                    _id: { month: { $month: "$createdAt" } },
-                    count: { $sum: 1 },
+                $match: {
+                    $expr: {
+                        $eq: [{ $year: "$createdAt" }, year],
+                    },
                 },
             },
-            { $sort: { month: 1 } },
+            {
+                $group: {
+                    _id: { month: { $month: "$createdAt" } },
+                    count: { $count: {} },
+                },
+            },
+            { $sort: { "_id.month": 1 } },
         ]).exec();
-        return res.status(200).json(countProductsByMonth);
+
+        const productsByMonth = [];
+        productsByMonth.push(
+            ...countProductsByMonth.map((value) => {
+                return {
+                    month: monthNames[value._id.month - 1],
+                    products: value.count,
+                };
+            })
+        );
+        return res.status(200).json(productsByMonth);
     } catch (err) {
         return res.status(500).json(err.message);
     }
@@ -272,9 +321,18 @@ const countSellerProductsByMonth = async (req, res) => {
         if (!seller) {
             return res.status(404).json("Seller not found");
         }
+
+        const year = parseInt(req.query.year) || new Date().getFullYear();
         // Count seller products by month
         const countSellerProductsByMonth = await Product.aggregate([
-            { $match: { sellerId: seller._id } },
+            {
+                $match: {
+                    sellerId: seller._id,
+                    $expr: {
+                        $eq: [{ $year: "$createdAt" }, year],
+                    },
+                },
+            },
             {
                 $group: {
                     _id: {
@@ -284,9 +342,19 @@ const countSellerProductsByMonth = async (req, res) => {
                     count: { $sum: 1 },
                 },
             },
-            { $sort: { month: 1 } },
+            { $sort: { "_id.month": 1 } },
         ]).exec();
-        return res.status(200).json(countSellerProductsByMonth);
+
+        const sellerProductsByMonth = [];
+        sellerProductsByMonth.push(
+            ...countSellerProductsByMonth.map((value) => {
+                return {
+                    month: monthNames[value._id.month - 1],
+                    products: value.count,
+                };
+            })
+        );
+        return res.status(200).json(sellerProductsByMonth);
     } catch (err) {
         return res.status(500).json(err.message);
     }
@@ -301,9 +369,18 @@ const countCustomerProductsByMonth = async (req, res) => {
         if (!customer) {
             return res.status(404).json("Customer not found");
         }
+
+        const year = parseInt(req.query.year) || new Date().getFullYear();
         // Count customer products by month
         const countCustomerProductsByMonth = await Product.aggregate([
-            { $match: { customerId: customer._id } },
+            {
+                $match: {
+                    customerId: customer._id,
+                    $expr: {
+                        $eq: [{ $year: "$createdAt" }, year],
+                    },
+                },
+            },
             {
                 $group: {
                     _id: {
@@ -313,9 +390,19 @@ const countCustomerProductsByMonth = async (req, res) => {
                     count: { $sum: 1 },
                 },
             },
-            { $sort: { month: 1 } },
+            { $sort: { "_id.month": 1 } },
         ]).exec();
-        return res.status(200).json(countCustomerProductsByMonth);
+
+        const customerProductsByMonth = [];
+        customerProductsByMonth.push(
+            ...countCustomerProductsByMonth.map((value) => {
+                return {
+                    month: monthNames[value._id.month - 1],
+                    products: value.count,
+                };
+            })
+        );
+        return res.status(200).json(customerProductsByMonth);
     } catch (err) {
         return res.status(500).json(err.message);
     }
@@ -352,6 +439,184 @@ const countProductsInCategory = async (req, res) => {
     }
 };
 
+const getProductsPerSellerByMonth = async (req, res) => {
+    try {
+        const year = parseInt(req.query.year) || new Date().getFullYear();
+        // Count products per seller by month
+        const countProductsPerSellerByMonth = await Product.aggregate([
+            {
+                $match: {
+                    $expr: {
+                        $eq: [{ $year: "$createdAt" }, year],
+                    },
+                },
+            },
+            {
+                $lookup: {
+                    from: "users",
+                    localField: "sellerId",
+                    foreignField: "_id",
+                    as: "seller",
+                },
+            },
+            {
+                $replaceRoot: {
+                    newRoot: {
+                        $mergeObjects: [
+                            { $arrayElemAt: ["$seller", 0] },
+                            "$$ROOT",
+                        ],
+                    },
+                },
+            },
+            {
+                $project: { createdAt: 1, name: 1, username: 1 },
+            },
+            {
+                $group: {
+                    _id: {
+                        month: { $month: "$createdAt" },
+                        seller: "$username",
+                    },
+                    count: { $sum: 1 },
+                },
+            },
+            { $sort: { "_id.month": 1, count: -1 } },
+        ]).exec();
+
+        const sellerAnalysis = [];
+        sellerAnalysis.push(
+            ...countProductsPerSellerByMonth.map((value) => {
+                return {
+                    month: monthNames[value._id.month - 1],
+                    [value._id.seller || "not sold yet"]: value.count,
+                };
+            })
+        );
+
+        const monthAnalysis = [];
+        sellerAnalysis.forEach((item) => {
+            let existing = monthAnalysis.filter((value, index) => {
+                return value.month == item.month;
+            });
+
+            if (existing.length) {
+                let existingIndex = monthAnalysis.indexOf(existing[0]);
+                monthAnalysis[existingIndex] = {
+                    ...monthAnalysis[existingIndex],
+                    ...item,
+                };
+            } else {
+                monthAnalysis.push(item);
+            }
+        });
+        return res.status(200).json(monthAnalysis);
+    } catch (err) {
+        return res.status(500).json(err.message);
+    }
+};
+
+const getProductsPerCategoryByMonth = async (req, res) => {
+    try {
+        const year = parseInt(req.params.year) || new Date().getFullYear();
+        // Get products in each category by month
+        const countProductsPerCategoryByMonth = await Product.aggregate([
+            {
+                $match: {
+                    $expr: {
+                        $eq: [{ $year: "$createdAt" }, year],
+                    },
+                },
+            },
+            {
+                $lookup: {
+                    from: "categories",
+                    localField: "categoryId",
+                    foreignField: "_id",
+                    as: "category",
+                },
+            },
+            {
+                $replaceRoot: {
+                    newRoot: {
+                        $mergeObjects: [
+                            { $arrayElemAt: ["$category", 0] },
+                            "$$ROOT",
+                        ],
+                    },
+                },
+            },
+            {
+                $project: { createdAt: 1, title: 1 },
+            },
+            {
+                $group: {
+                    _id: {
+                        month: { $month: "$createdAt" },
+                        category: "$title",
+                    },
+                    count: { $sum: 1 },
+                },
+            },
+            { $sort: { "_id.month": 1, count: -1 } },
+        ]).exec();
+
+        const countProductsByMonth = await Product.aggregate([
+            {
+                $match: {
+                    $expr: {
+                        $eq: [{ $year: "$createdAt" }, year],
+                    },
+                },
+            },
+            { $project: { createdAt: 1 } },
+            {
+                $group: {
+                    _id: { month: { $month: "$createdAt" } },
+                    count: { $count: {} },
+                },
+            },
+            { $sort: { "_id.month": 1 } },
+        ]).exec();
+
+        const categoryAnalysis = [];
+        categoryAnalysis.push(
+            ...countProductsByMonth.map((value) => {
+                return {
+                    month: monthNames[value._id.month - 1],
+                    totalProducts: value.count,
+                };
+            }),
+            ...countProductsPerCategoryByMonth.map((value) => {
+                return {
+                    month: monthNames[value._id.month - 1],
+                    [value._id.category || ""]: value.count,
+                };
+            })
+        );
+
+        const monthAnalysis = [];
+        categoryAnalysis.forEach((item) => {
+            let existing = monthAnalysis.filter((value, index) => {
+                return value.month == item.month;
+            });
+
+            if (existing.length) {
+                let existingIndex = monthAnalysis.indexOf(existing[0]);
+                monthAnalysis[existingIndex] = {
+                    ...monthAnalysis[existingIndex],
+                    ...item,
+                };
+            } else {
+                monthAnalysis.push(item);
+            }
+        });
+        return res.status(200).json(monthAnalysis);
+    } catch (err) {
+        return res.status(500).json(err.message);
+    }
+};
+
 module.exports = {
     getAllProducts,
     getProductsByCategoryId,
@@ -369,4 +634,6 @@ module.exports = {
     countCustomerProductsByMonth,
     countProductsInStock,
     countProductsInCategory,
+    getProductsPerSellerByMonth,
+    getProductsPerCategoryByMonth,
 };

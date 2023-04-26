@@ -10,7 +10,7 @@ router.get("/users", verifyAdmin, countUsers);
 
 router.get("/customers", verifyAdmin, countCustomers);
 
-router.get("/categories", verifyAdmin, countCategories);
+router.get("/categories", countCategories);
 
 router.get("/totalDeposit", verifyAdmin, ProductController.getTotalDeposit);
 

@@ -1,4 +1,5 @@
 const Customer = require("../models/Customer");
+const User = require("../models/User");
 
 const getAllCustomer = async (req, res) => {
     const q = req.query;
@@ -12,39 +13,67 @@ const getAllCustomer = async (req, res) => {
             },
         }),
         ...(q.search && {
-            phone: { $regex: q.search, $options: "i" },
-            name: { $regex: q.search, $options: "i" },
+            $or: [
+                {
+                    phone: { $regex: q.search, $options: "i" },
+                },
+                {
+                    name: { $regex: q.search, $options: "i" },
+                },
+            ],
         }),
         ...(q.updateBy && { updateBy: q.updateBy }),
     };
+
+    const dsc = q.sortOrder === "dsc" ? -1 : 1;
 
     try {
         // Get all customers with filters
         const customers = await Customer.find(filters)
             .select({ __v: 0 })
             .limit(q.limit)
-            .sort({ [q.sort]: 1, createdAt: -1 });
-        if (!customers) {
-            return res.status(404).json("Customer not found");
-        }
+            .sort({ [q.sortName]: dsc })
+            .exec();
         return res.status(200).json(customers);
     } catch (err) {
-        console.error(err);
+        return res.status(500).json(err.message);
+    }
+};
+
+const getCustomersBySellerId = async (req, res) => {
+    const sellerId = req.params.sellerId;
+    const q = req.query;
+    const dsc = q.sortOrder === "dsc" ? -1 : 1;
+    try {
+        // Get customers by seller id
+        const customers = await Customer.find({
+            userId: sellerId,
+        })
+            .select({ __v: 0 })
+            .limit(q.limit)
+            .sort({ [q.sortName]: dsc, createdAt: -1 })
+            .exec();
+        return res.status(200).json(customers);
+    } catch (err) {
+        return res.status(500).json(err.message);
     }
 };
 
 const getCustomer = async (req, res) => {
+    const customerId = req.params.id;
     try {
         // Get customer by id
         const customer = await Customer.findOne({
-            _id: req.params.id,
-        }).select({ __v: 0 });
+            _id: customerId,
+        })
+            .select({ __v: 0 })
+            .exec();
         if (!customer) {
-            return res.status(404).json("Customer not found");
+            return res.status(404).json({ message: "Customer not found" });
         }
         return res.status(200).json(customer);
     } catch (err) {
-        console.error(err);
+        return res.status(500).json(err.message);
     }
 };
 
@@ -56,7 +85,7 @@ const createCustomer = async (req, res) => {
         // Find if customer already exists
         const customerExists = await Customer.findOne({
             phone: req.body.phone,
-        });
+        }).exec();
         if (customerExists) {
             return res.status(409).json({
                 message: "Phone number already exists.",
@@ -77,11 +106,12 @@ const createCustomer = async (req, res) => {
 };
 
 const updateCustomer = async (req, res) => {
+    const customerId = req.params.id;
     try {
         // Find if phone number already exists
         const customerExists = await Customer.findOne({
             phone: req.body.phone,
-        });
+        }).exec();
         if (customerExists) {
             return res.status(409).json({
                 message: "Phone number already exists.",
@@ -89,7 +119,7 @@ const updateCustomer = async (req, res) => {
         }
         // If phone number not exist, find customer and update
         await Customer.findOneAndUpdate(
-            { _id: req.params.id },
+            { _id: customerId },
             {
                 $set: {
                     updatedBy: req.userId,
@@ -104,10 +134,11 @@ const updateCustomer = async (req, res) => {
 };
 
 const deleteCustomer = async (req, res) => {
+    const customerId = req.params.id;
     try {
         // Find customer and delete
         const customer = await Customer.findOneAndDelete({
-            _id: req.params.id,
+            _id: customerId,
         });
         return res.status(200).json(customer);
     } catch (err) {
@@ -127,6 +158,7 @@ const countCustomers = async (req, res) => {
 
 module.exports = {
     getAllCustomer,
+    getCustomersBySellerId,
     getCustomer,
     createCustomer,
     updateCustomer,

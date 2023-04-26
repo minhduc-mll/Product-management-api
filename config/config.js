@@ -1,5 +1,11 @@
 const mongoose = require("mongoose");
 const cloudinary = require("cloudinary").v2;
+const dotenv = require("dotenv");
+const dotenvExpand = require("dotenv-expand");
+
+// Configuration Dotenv
+const myEnv = dotenv.config();
+dotenvExpand.expand(myEnv);
 
 // Configuration Cloudinary
 cloudinary.config({

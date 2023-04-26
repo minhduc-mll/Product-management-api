@@ -36,8 +36,14 @@ const getAllProducts = async (req, res) => {
         ...(q.port && { port: q.port }),
         ...(q.status && { status: q.status }),
         ...(q.search && {
-            productId: { $regex: q.search, $options: "i" },
-            desc: { $regex: q.search, $options: "i" },
+            $or: [
+                {
+                    productId: { $regex: q.search, $options: "i" },
+                },
+                {
+                    desc: { $regex: q.search, $options: "i" },
+                },
+            ],
         }),
     };
 
@@ -48,10 +54,8 @@ const getAllProducts = async (req, res) => {
         const products = await Product.find(filters)
             .select({ __v: 0 })
             .limit(q.limit)
-            .sort({ [q.sortName]: dsc });
-        if (!products) {
-            return res.status(404).json("Product not found");
-        }
+            .sort({ [q.sortName]: dsc })
+            .exec();
         return res.status(200).json(products);
     } catch (err) {
         return res.status(500).json(err.message);
@@ -59,28 +63,18 @@ const getAllProducts = async (req, res) => {
 };
 
 const getProductsByCategoryId = async (req, res) => {
+    const categoryId = req.params.categoryId;
     const q = req.query;
     const dsc = q.sortOrder === "dsc" ? -1 : 1;
     try {
-        // Find category by categoryId
-        const category = await Category.findOne({
-            _id: req.params.categoryId,
-        }).select({ __v: 0 });
-        if (!category) {
-            return res.status(404).json("Category not found");
-        }
-        // Get product by id
+        // Get products by category id
         const products = await Product.find({
-            categoryId: category._id,
+            categoryId: categoryId,
         })
             .select({ __v: 0 })
             .limit(q.limit)
-            .sort({ [q.sortName]: dsc, createdAt: -1 });
-        if (!products) {
-            return res
-                .status(404)
-                .json("This category does not have any product");
-        }
+            .sort({ [q.sortName]: dsc, createdAt: -1 })
+            .exec();
         return res.status(200).json(products);
     } catch (err) {
         return res.status(500).json(err.message);
@@ -88,28 +82,18 @@ const getProductsByCategoryId = async (req, res) => {
 };
 
 const getProductsBySellerId = async (req, res) => {
+    const sellerId = req.params.sellerId;
     const q = req.query;
     const dsc = q.sortOrder === "dsc" ? -1 : 1;
     try {
-        // Find seller by sellerId
-        const seller = await User.findOne({
-            _id: req.params.sellerId,
-        }).select({ __v: 0 });
-        if (!seller) {
-            return res.status(404).json("Seller not found");
-        }
-        // Get product by id
+        // Get products by seller id
         const products = await Product.find({
-            sellerId: seller._id,
+            sellerId: sellerId,
         })
             .select({ __v: 0 })
             .limit(q.limit)
-            .sort({ [q.sortName]: dsc, createdAt: -1 });
-        if (!products) {
-            return res
-                .status(404)
-                .json("This seller does not have any product");
-        }
+            .sort({ [q.sortName]: dsc, createdAt: -1 })
+            .exec();
         return res.status(200).json(products);
     } catch (err) {
         return res.status(500).json(err.message);
@@ -117,28 +101,18 @@ const getProductsBySellerId = async (req, res) => {
 };
 
 const getProductsByCustomerId = async (req, res) => {
+    const customerId = req.params.customerId;
     const q = req.query;
     const dsc = q.sortOrder === "dsc" ? -1 : 1;
     try {
-        // Find customer by customerId
-        const customer = await Customer.findOne({
-            _id: req.params.customerId,
-        }).select({ __v: 0 });
-        if (!customer) {
-            return res.status(404).json("Customer not found");
-        }
-        // Get product by id
+        // Get products by customer id
         const products = await Product.find({
-            customerId: customer._id,
+            customerId: customerId,
         })
             .select({ __v: 0 })
             .limit(q.limit)
-            .sort({ [q.sortName]: dsc, createdAt: -1 });
-        if (!products) {
-            return res
-                .status(404)
-                .json("This customer does not have any product");
-        }
+            .sort({ [q.sortName]: dsc, createdAt: -1 })
+            .exec();
         return res.status(200).json(products);
     } catch (err) {
         return res.status(500).json(err.message);
@@ -146,13 +120,16 @@ const getProductsByCustomerId = async (req, res) => {
 };
 
 const getProduct = async (req, res) => {
+    const productId = req.params.productId;
     try {
         // Get product by id
         const product = await Product.findOne({
-            productId: req.params.productId,
-        }).select({ __v: 0 });
+            productId: productId,
+        })
+            .select({ __v: 0 })
+            .exec();
         if (!product) {
-            return res.status(404).json("Product not found");
+            return res.status(404).json({ message: "Product not found" });
         }
         return res.status(200).json(product);
     } catch (err) {
@@ -162,7 +139,7 @@ const getProduct = async (req, res) => {
 
 const createProduct = async (req, res) => {
     try {
-        if (!req.body.productId || !req.body.categoryId) {
+        if (!req.body.productId) {
             return res.status(400).json({ message: "Missing input" });
         }
         // Find if product already exists
@@ -187,10 +164,11 @@ const createProduct = async (req, res) => {
 };
 
 const updateProduct = async (req, res) => {
+    const productId = req.params.productId;
     try {
         // Find if product already exists
         const productExists = await Product.findOne({
-            productId: req.body.productId,
+            productId: productId,
         });
         if (productExists) {
             return res.status(409).json({
@@ -199,7 +177,7 @@ const updateProduct = async (req, res) => {
         }
         // Find product and update
         await Product.findOneAndUpdate(
-            { productId: req.params.productId },
+            { productId: productId },
             {
                 $set: {
                     updatedBy: req.userId,
@@ -214,10 +192,11 @@ const updateProduct = async (req, res) => {
 };
 
 const deleteProduct = async (req, res) => {
+    const productId = req.params.productId;
     try {
         // Find product and delete
         await Product.findOneAndDelete({
-            productId: req.params.productId,
+            productId: productId,
         });
         return res.status(200).json("Deleted!");
     } catch (err) {
@@ -299,7 +278,7 @@ const countProductsByMonth = async (req, res) => {
 
         const productsByMonth = [];
         productsByMonth.push(
-            ...countProductsByMonth.map((value) => {
+            ...countProductsByMonth?.map((value) => {
                 return {
                     month: monthNames[value._id.month - 1],
                     products: value.count,
@@ -313,13 +292,16 @@ const countProductsByMonth = async (req, res) => {
 };
 
 const countSellerProductsByMonth = async (req, res) => {
+    const sellerId = req.params.sellerId;
     try {
         // Find seller by sellerId
         const seller = await User.findOne({
-            _id: req.params.sellerId,
-        }).select({ __v: 0 });
+            _id: sellerId,
+        })
+            .select({ __v: 0 })
+            .exec();
         if (!seller) {
-            return res.status(404).json("Seller not found");
+            return res.status(404).json({ message: "Seller not found" });
         }
 
         const year = parseInt(req.query.year) || new Date().getFullYear();
@@ -347,7 +329,7 @@ const countSellerProductsByMonth = async (req, res) => {
 
         const sellerProductsByMonth = [];
         sellerProductsByMonth.push(
-            ...countSellerProductsByMonth.map((value) => {
+            ...countSellerProductsByMonth?.map((value) => {
                 return {
                     month: monthNames[value._id.month - 1],
                     products: value.count,
@@ -361,13 +343,16 @@ const countSellerProductsByMonth = async (req, res) => {
 };
 
 const countCustomerProductsByMonth = async (req, res) => {
+    const customerId = req.params.customerId;
     try {
         // Find customer by customerId
         const customer = await Customer.findOne({
-            _id: req.params.customerId,
-        }).select({ __v: 0 });
+            _id: customerId,
+        })
+            .select({ __v: 0 })
+            .exec();
         if (!customer) {
-            return res.status(404).json("Customer not found");
+            return res.status(404).json({ message: "Customer not found" });
         }
 
         const year = parseInt(req.query.year) || new Date().getFullYear();
@@ -395,7 +380,7 @@ const countCustomerProductsByMonth = async (req, res) => {
 
         const customerProductsByMonth = [];
         customerProductsByMonth.push(
-            ...countCustomerProductsByMonth.map((value) => {
+            ...countCustomerProductsByMonth?.map((value) => {
                 return {
                     month: monthNames[value._id.month - 1],
                     products: value.count,
@@ -421,14 +406,18 @@ const countProductsInStock = async (req, res) => {
 };
 
 const countProductsInCategory = async (req, res) => {
+    const categoryId = req.params.categoryId;
     try {
         // Find category by categoryId
         const category = await Category.findOne({
-            _id: req.params.categoryId,
-        }).select({ __v: 0 });
+            _id: categoryId,
+        })
+            .select({ __v: 0 })
+            .exec();
         if (!category) {
-            return res.status(404).json("Category not found");
+            return res.status(404).json({ message: "Category not found" });
         }
+
         // Count all products
         const count = await Product.countDocuments({
             categoryId: category._id,
@@ -486,7 +475,7 @@ const getProductsPerSellerByMonth = async (req, res) => {
 
         const sellerAnalysis = [];
         sellerAnalysis.push(
-            ...countProductsPerSellerByMonth.map((value) => {
+            ...countProductsPerSellerByMonth?.map((value) => {
                 return {
                     month: monthNames[value._id.month - 1],
                     [value._id.seller || "not sold yet"]: value.count,
@@ -581,13 +570,13 @@ const getProductsPerCategoryByMonth = async (req, res) => {
 
         const categoryAnalysis = [];
         categoryAnalysis.push(
-            ...countProductsByMonth.map((value) => {
+            ...countProductsByMonth?.map((value) => {
                 return {
                     month: monthNames[value._id.month - 1],
                     totalProducts: value.count,
                 };
             }),
-            ...countProductsPerCategoryByMonth.map((value) => {
+            ...countProductsPerCategoryByMonth?.map((value) => {
                 return {
                     month: monthNames[value._id.month - 1],
                     [value._id.category || ""]: value.count,
@@ -611,7 +600,7 @@ const getProductsPerCategoryByMonth = async (req, res) => {
                 monthAnalysis.push(item);
             }
         });
-        return res.status(200).json(monthAnalysis);
+        return res.status(200).json(categoryAnalysis);
     } catch (err) {
         return res.status(500).json(err.message);
     }

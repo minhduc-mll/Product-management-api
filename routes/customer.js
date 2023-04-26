@@ -7,6 +7,8 @@ const { cloudinaryUpload } = require("../middlewares/CloudinaryUpload");
 router.get("/", CustomerController.getAllCustomer);
 router.get("/:id", CustomerController.getCustomer);
 
+router.get("/user/:sellerId", CustomerController.getCustomersBySellerId);
+
 router.post(
     "/",
     multer.single("image"),

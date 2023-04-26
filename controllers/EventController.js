@@ -17,15 +17,15 @@ const getAllEvent = async (req, res) => {
         ...(q.search && { title: { $regex: q.search, $options: "i" } }),
     };
 
+    const dsc = q.sortOrder === "dsc" ? -1 : 1;
+
     try {
         // Get all events with filters
         const events = await Event.find(filters)
             .select({ __v: 0 })
             .limit(q.limit)
-            .sort({ [q.sort]: -1, createAt: -1 });
-        if (!events) {
-            return res.status(404).json("Event not found");
-        }
+            .sort({ createdAt: -1, [q.sortName]: dsc })
+            .exec();
         return res.status(200).json(events);
     } catch (err) {
         return res.status(500).json(err.message);
@@ -33,13 +33,16 @@ const getAllEvent = async (req, res) => {
 };
 
 const getEvent = async (req, res) => {
+    const eventId = req.params.id;
     try {
         // Get event by id
         const event = await Event.findOne({
-            _id: req.params.id,
-        }).select({ __v: 0, password: 0 });
+            _id: eventId,
+        })
+            .select({ __v: 0, password: 0 })
+            .exec();
         if (!event) {
-            return res.status(404).json("Event not found");
+            return res.status(404).json({ message: "Event not found" });
         }
         return res.status(200).json(event);
     } catch (err) {
@@ -49,7 +52,7 @@ const getEvent = async (req, res) => {
 
 const createEvent = async (req, res) => {
     if (!req.body.title || !req.body.start) {
-        return res.status(400).json("Missing input");
+        return res.status(400).json({ message: "Missing input" });
     }
     try {
         // Create new event
@@ -65,10 +68,11 @@ const createEvent = async (req, res) => {
 };
 
 const updateEvent = async (req, res) => {
+    const eventId = req.params.id;
     try {
         // Find event and update
         await Event.findOneAndUpdate(
-            { _id: req.params.id },
+            { _id: eventId },
             {
                 $set: {
                     updatedBy: req.userId,
@@ -83,10 +87,11 @@ const updateEvent = async (req, res) => {
 };
 
 const deleteEvent = async (req, res) => {
+    const eventId = req.params.id;
     try {
         // Find event and delete
         const event = await Event.findOneAndDelete({
-            _id: req.params.id,
+            _id: eventId,
         });
         return res.status(200).json(event);
     } catch (err) {
@@ -110,14 +115,14 @@ const getProductEvents = async (req, res) => {
 
         let events = [];
         events.push(
-            ...arrivalProducts.map((product) => {
+            ...arrivalProducts?.map((product) => {
                 return {
                     title: product.productId,
                     allDay: true,
                     start: product.arrivalDate,
                 };
             }),
-            ...deliveryProducts.map((product) => {
+            ...deliveryProducts?.map((product) => {
                 return {
                     title: product.productId,
                     allDay: true,
@@ -134,15 +139,16 @@ const getProductEvents = async (req, res) => {
 };
 
 const getProductEventByProductId = async (req, res) => {
+    const productId = req.params.productId;
     try {
         // Get product have arrival events with product id
         const product = await Product.findOne({
-            productId: req.params.productId,
+            productId: productId,
         })
             .select({ _id: 1, productId: 1, arrivalDate: 1, deliveryDate: 1 })
             .exec();
         if (!product) {
-            return res.status(404).json("Product not found");
+            return res.status(404).json({ message: "Product not found" });
         }
 
         let events = [];
@@ -179,7 +185,7 @@ const getProductArrivalEvents = async (req, res) => {
 
         let events = [];
         events.push(
-            ...arrivalProducts.map((product) => {
+            ...arrivalProducts?.map((product) => {
                 return {
                     title: product.productId,
                     allDay: true,
@@ -194,15 +200,16 @@ const getProductArrivalEvents = async (req, res) => {
 };
 
 const getProductArrivalEventByProductId = async (req, res) => {
+    const productId = req.params.productId;
     try {
         // Get product have arrival events with product id
         const product = await Product.findOne({
-            productId: req.params.productId,
+            productId: productId,
         })
             .select({ _id: 1, productId: 1, arrivalDate: 1 })
             .exec();
         if (!product) {
-            return res.status(404).json("Product not found");
+            return res.status(404).json({ message: "Product not found" });
         }
 
         let events = [];

@@ -13,14 +13,18 @@ const register = async (req, res) => {
         // Find if user already exists
         const userExists = await User.findOne({
             username: username,
-        }).select({ __v: 0 });
+        })
+            .select({ __v: 0 })
+            .exec();
         if (userExists) {
             return res.status(409).json("User already exists.");
         }
         // Find if email already exists
         const emailExists = await User.findOne({
             email: email,
-        }).select({ __v: 0 });
+        })
+            .select({ __v: 0 })
+            .exec();
         if (emailExists) {
             return res.status(409).json("Email already exists.");
         }
@@ -47,7 +51,9 @@ const login = async (req, res) => {
         // Find user account by username
         const user = await User.findOne({
             username: username,
-        }).select({ __v: 0 });
+        })
+            .select({ __v: 0 })
+            .exec();
         if (!user) {
             return res.status(404).json("User not found!");
         }
@@ -70,7 +76,7 @@ const login = async (req, res) => {
 
         const { password, ...info } = user._doc;
         return res
-            .cookie("accessToken", accessToken, { httpOnly: true })
+            .cookie("accessToken", accessToken, { secure: true })
             .status(200)
             .json(info);
     } catch (err) {
@@ -103,7 +109,7 @@ const changePassword = async (req, res) => {
                 .json("New password must be different from old password");
         }
         // Check old password with user password
-        const user = await User.findById(req.userId);
+        const user = await User.findById(req.userId).exec();
 
         if (isBcrypt) {
             if (oldPassword !== user.password) {

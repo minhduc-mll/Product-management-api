@@ -9,15 +9,15 @@ const getAllCategory = async (req, res) => {
         ...(q.search && { title: { $regex: q.search, $options: "i" } }),
     };
 
+    const dsc = q.sortOrder === "dsc" ? -1 : 1;
+
     try {
         // Get all categories with filters
         const categories = await Category.find(filters)
             .select({ __v: 0 })
             .limit(q.limit)
-            .sort({ [q.sort]: -1, createAt: -1 });
-        if (!categories) {
-            return res.status(404).json({ message: "Category not found" });
-        }
+            .sort({ createdAt: -1, [q.sortName]: dsc })
+            .exec();
         return res.status(200).json(categories);
     } catch (err) {
         return res.status(500).json(err.message);
@@ -25,11 +25,14 @@ const getAllCategory = async (req, res) => {
 };
 
 const getCategory = async (req, res) => {
+    const categoryId = req.params.id;
     try {
         // Get category by id
         const category = await Category.findOne({
-            _id: req.params.id,
-        }).select({ __v: 0, password: 0 });
+            _id: categoryId,
+        })
+            .select({ __v: 0 })
+            .exec();
         if (!category) {
             return res.status(404).json({ message: "Category not found" });
         }
@@ -57,10 +60,11 @@ const createCategory = async (req, res) => {
 };
 
 const updateCategory = async (req, res) => {
+    const categoryId = req.params.id;
     try {
         // Find category and update
         await Category.findOneAndUpdate(
-            { _id: req.params.id },
+            { _id: categoryId },
             {
                 $set: {
                     updatedBy: req.userId,
@@ -75,10 +79,11 @@ const updateCategory = async (req, res) => {
 };
 
 const deleteCategory = async (req, res) => {
+    const categoryId = req.params.id;
     try {
         // Find category and delete
         const category = await Category.findOneAndDelete({
-            _id: req.params.id,
+            _id: categoryId,
         });
         return res.status(200).json(category);
     } catch (err) {

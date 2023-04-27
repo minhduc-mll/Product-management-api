@@ -47,9 +47,19 @@ const createCategory = async (req, res) => {
         return res.status(400).json({ message: "Missing input" });
     }
     try {
-        // Create new category
+        // Find if category already exists
+        const categoryExists = await Category.findOne({
+            title: req.body.title,
+        }).exec();
+        if (categoryExists) {
+            return res.status(409).json({
+                message: "Category already exists.",
+            });
+        }
+        // If category not exist, create new category
         const newCategory = new Category({
             updatedBy: req.userId,
+            image: req.image,
             ...req.body,
         });
         await newCategory.save();
@@ -62,12 +72,22 @@ const createCategory = async (req, res) => {
 const updateCategory = async (req, res) => {
     const categoryId = req.params.id;
     try {
-        // Find category and update
+        // Find if category already exists
+        const categoryExists = await Category.findOne({
+            title: req.body.title,
+        }).exec();
+        if (categoryExists && categoryExists._id != categoryId) {
+            return res.status(409).json({
+                message: "Category already exists.",
+            });
+        }
+        // If category not exist, find category and update
         await Category.findOneAndUpdate(
             { _id: categoryId },
             {
                 $set: {
                     updatedBy: req.userId,
+                    image: req.image,
                     ...req.body,
                 },
             }

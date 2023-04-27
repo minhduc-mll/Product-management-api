@@ -16,8 +16,18 @@ router.post(
     CustomerController.createCustomer
 );
 
-router.put("/:id", CustomerController.updateCustomer);
-router.patch("/:id", CustomerController.updateCustomer);
+router.put(
+    "/:id",
+    multer.single("image"),
+    cloudinaryUpload,
+    CustomerController.updateCustomer
+);
+router.patch(
+    "/:id",
+    multer.single("image"),
+    cloudinaryUpload,
+    CustomerController.updateCustomer
+);
 router.delete("/:id", CustomerController.deleteCustomer);
 
 module.exports = router;

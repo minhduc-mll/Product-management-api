@@ -91,7 +91,7 @@ const createCustomer = async (req, res) => {
                 message: "Phone number already exists.",
             });
         }
-        // If customer not exist, add new customer
+        // If customer not exist, create new customer
         const newCustomer = new Customer({
             updatedBy: req.userId,
             userId: req.userId,
@@ -112,7 +112,7 @@ const updateCustomer = async (req, res) => {
         const customerExists = await Customer.findOne({
             phone: req.body.phone,
         }).exec();
-        if (customerExists) {
+        if (customerExists && customerExists._id != customerId) {
             return res.status(409).json({
                 message: "Phone number already exists.",
             });
@@ -123,6 +123,7 @@ const updateCustomer = async (req, res) => {
             {
                 $set: {
                     updatedBy: req.userId,
+                    image: req.image,
                     ...req.body,
                 },
             }

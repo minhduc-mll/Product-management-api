@@ -170,7 +170,7 @@ const updateProduct = async (req, res) => {
         const productExists = await Product.findOne({
             productId: productId,
         });
-        if (productExists) {
+        if (productExists && productExists.productId != productId) {
             return res.status(409).json({
                 message: "Product exists.",
             });
@@ -507,7 +507,7 @@ const getProductsPerSellerByMonth = async (req, res) => {
 
 const getProductsPerCategoryByMonth = async (req, res) => {
     try {
-        const year = parseInt(req.params.year) || new Date().getFullYear();
+        const year = parseInt(req.query.year) || new Date().getFullYear();
         // Get products in each category by month
         const countProductsPerCategoryByMonth = await Product.aggregate([
             {
@@ -600,7 +600,7 @@ const getProductsPerCategoryByMonth = async (req, res) => {
                 monthAnalysis.push(item);
             }
         });
-        return res.status(200).json(categoryAnalysis);
+        return res.status(200).json(monthAnalysis);
     } catch (err) {
         return res.status(500).json(err.message);
     }

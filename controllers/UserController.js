@@ -1,5 +1,4 @@
 const User = require("../models/User");
-const Role = require("../models/Role");
 
 const getAllUser = async (req, res) => {
     const q = req.query;
@@ -107,7 +106,7 @@ const updateUser = async (req, res) => {
         const userExists = await User.findOne({
             username: req.body.username,
         }).exec();
-        if (userExists) {
+        if (userExists && userExists._id != userId) {
             return res
                 .status(409)
                 .json({ message: "Username already exists." });
@@ -117,6 +116,7 @@ const updateUser = async (req, res) => {
             { _id: userId },
             {
                 $set: {
+                    image: req.image,
                     ...req.body,
                 },
             }

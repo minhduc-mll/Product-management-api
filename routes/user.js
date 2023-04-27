@@ -17,8 +17,20 @@ router.post(
     UserController.createUser
 );
 
-router.put("/:id", verifyAdmin, UserController.updateUser);
-router.patch("/:id", verifyAdmin, UserController.updateUser);
+router.put(
+    "/:id",
+    verifyAdmin,
+    multer.single("image"),
+    cloudinaryUpload,
+    UserController.updateUser
+);
+router.patch(
+    "/:id",
+    verifyAdmin,
+    multer.single("image"),
+    cloudinaryUpload,
+    UserController.updateUser
+);
 router.delete("/:id", verifyAdmin, UserController.deleteUser);
 
 module.exports = router;

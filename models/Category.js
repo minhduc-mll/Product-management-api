@@ -4,7 +4,7 @@ const ObjectId = Schema.Types.ObjectId;
 
 const CategorySchema = new Schema(
     {
-        title: { type: String, required: true },
+        title: { type: String, required: true, unique: true },
         desc: { type: String, require: false },
         updatedBy: { type: ObjectId, ref: "User" },
     },

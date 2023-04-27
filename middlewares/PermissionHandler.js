@@ -43,7 +43,7 @@ const verifyMod = async (req, res, next) => {
 const verifyAdmin = async (req, res, next) => {
     try {
         // Check the user role
-        if (req.role !== "admin" && req.role !== "mod") {
+        if (req.role !== "admin" && req.role !== "mod" && req.role !== "dev") {
             return res.status(403).json({
                 message: "User don't have permission!",
             });

@@ -1,5 +1,4 @@
 const Customer = require("../models/Customer");
-const User = require("../models/User");
 
 const getAllCustomer = async (req, res) => {
     const q = req.query;

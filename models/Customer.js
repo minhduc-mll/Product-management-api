@@ -11,16 +11,7 @@ const CustomerSchema = new Schema(
         birthday: { type: Date, require: false },
         company: { type: String, require: false },
         bankAccount: { type: String, require: false },
-        address: {
-            city: String,
-            district: String,
-            full: String,
-            zipcode: String,
-            geolocation: {
-                lat: String,
-                lon: String,
-            },
-        },
+        address: { type: String, require: false },
         userId: { type: ObjectId, ref: "User" },
         updatedBy: { type: ObjectId, ref: "User" },
     },

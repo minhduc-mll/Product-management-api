@@ -14,11 +14,13 @@ const ProductSchema = new Schema(
         deposit: { type: Number, min: 0, default: 0 },
         desc: { type: String },
         port: { type: String },
+        document: { type: String },
         status: {
             type: String,
             enum: ["pending", "sold", "done"],
             default: "pending",
         },
+        saleDate: { type: Date },
         arrivalDate: { type: Date },
         deliveryDate: { type: Date },
         updatedBy: { type: ObjectId, ref: "User" },

@@ -3,8 +3,9 @@ const router = express.Router();
 const { verifyAdmin } = require("../middlewares/PermissionHandler");
 const { countUsers } = require("../controllers/UserController");
 const { countCustomers } = require("../controllers/CustomerController");
-const ProductController = require("../controllers/ProductController");
 const { countCategories } = require("../controllers/CategoryController");
+const { countProducts } = require("../controllers/ProductController");
+const AnalysController = require("../controllers/AnalysController");
 
 router.get("/users", verifyAdmin, countUsers);
 
@@ -12,39 +13,46 @@ router.get("/customers", verifyAdmin, countCustomers);
 
 router.get("/categories", countCategories);
 
-router.get("/totalDeposit", verifyAdmin, ProductController.getTotalDeposit);
+router.get("/products", countProducts);
 
-router.get("/products", ProductController.countProducts);
+router.get("/totalDeposit", verifyAdmin, AnalysController.getTotalDeposit);
 
-router.get("/productsMonth", ProductController.countProductsMonth);
+router.get("/productsMonth", AnalysController.countProductsMonth);
 
-router.get("/productsByMonth", ProductController.countProductsByMonth);
+router.get("/productsByMonth", AnalysController.countProductsByMonth);
 
 router.get(
     "/userProductsByMonth/:sellerId",
-    ProductController.countSellerProductsByMonth
+    AnalysController.countSellerProductsByMonth
 );
 
 router.get(
     "/customerProductsByMonth/:customerId",
-    ProductController.countCustomerProductsByMonth
+    AnalysController.countCustomerProductsByMonth
 );
 
 router.get(
     "/productsInCategory/:categoryId",
-    ProductController.countProductsInCategory
+    AnalysController.countProductsInCategory
 );
 
-router.get("/productsInStock", ProductController.countProductsInStock);
+router.get("/productsInStock", AnalysController.countProductsInStock);
+
+router.get("/productsWithStatus", AnalysController.countProductsWithStatus);
 
 router.get(
     "/productsPerUserByMonth",
-    ProductController.getProductsPerSellerByMonth
+    AnalysController.getProductsPerSellerByMonth
 );
 
 router.get(
     "/productsPerCategoryByMonth",
-    ProductController.getProductsPerCategoryByMonth
+    AnalysController.getProductsPerCategoryByMonth
+);
+
+router.get(
+    "/productsPerUserOneMonth",
+    AnalysController.getProductsPerSellerOneMonth
 );
 
 module.exports = router;

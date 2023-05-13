@@ -18,6 +18,14 @@ router.post("/login", AuthController.login);
 
 router.post("/logout", AuthController.logout);
 
+router.put(
+    "/:id",
+    verifyByCookies,
+    multer.single("image"),
+    cloudinaryUpload,
+    AuthController.updateProfile
+);
+
 router.post("/change_password", verifyByCookies, AuthController.changePassword);
 
 router.get("/cloudinary/generate", cloudinaryGenerate);

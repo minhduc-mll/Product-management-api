@@ -94,6 +94,28 @@ const logout = async (req, res) => {
         .json("Logout successful");
 };
 
+const updateProfile = async (req, res) => {
+    const userId = req.params.id;
+    try {
+        if (userId != req.userId) {
+            return res.status(403).json("User don't have permission!");
+        }
+        console.log(userId + " " + req.userId);
+        await User.findOneAndUpdate(
+            { _id: userId },
+            {
+                $set: {
+                    image: req.image,
+                    ...req.body,
+                },
+            }
+        );
+        return res.status(202).json("Update successful");
+    } catch (err) {
+        return res.status(500).json(err.message);
+    }
+};
+
 const changePassword = async (req, res) => {
     // Get old password and change password
     let oldPassword = req.body.oldPassword;
@@ -135,5 +157,6 @@ module.exports = {
     register,
     login,
     logout,
+    updateProfile,
     changePassword,
 };

@@ -48,7 +48,7 @@ const getAllProducts = async (req, res) => {
     try {
         // Get all products with filters
         const products = await Product.find(filters)
-            .select({ __v: 0 })
+            .select({ __v: 0, payment: 0 })
             .limit(q.limit)
             .sort({ [q.sortName]: dsc })
             .exec();
@@ -67,9 +67,9 @@ const getProductsByCategoryId = async (req, res) => {
         const products = await Product.find({
             categoryId: categoryId,
         })
-            .select({ __v: 0 })
+            .select({ __v: 0, payment: 0 })
             .limit(q.limit)
-            .sort({ [q.sortName]: dsc, createdAt: -1 })
+            .sort({ createdAt: -1, [q.sortName]: dsc })
             .exec();
         return res.status(200).json(products);
     } catch (err) {
@@ -86,9 +86,9 @@ const getProductsBySellerId = async (req, res) => {
         const products = await Product.find({
             sellerId: sellerId,
         })
-            .select({ __v: 0 })
+            .select({ __v: 0, payment: 0 })
             .limit(q.limit)
-            .sort({ [q.sortName]: dsc, createdAt: -1 })
+            .sort({ createdAt: -1, [q.sortName]: dsc })
             .exec();
         return res.status(200).json(products);
     } catch (err) {
@@ -105,9 +105,9 @@ const getProductsByCustomerId = async (req, res) => {
         const products = await Product.find({
             customerId: customerId,
         })
-            .select({ __v: 0 })
+            .select({ __v: 0, payment: 0 })
             .limit(q.limit)
-            .sort({ [q.sortName]: dsc, createdAt: -1 })
+            .sort({ createdAt: -1, [q.sortName]: dsc })
             .exec();
         return res.status(200).json(products);
     } catch (err) {
@@ -122,7 +122,7 @@ const getProduct = async (req, res) => {
         const product = await Product.findOne({
             productId: productId,
         })
-            .select({ __v: 0 })
+            .select({ __v: 0, payment: 0 })
             .exec();
         if (!product) {
             return res.status(404).json({ message: "Product not found" });
@@ -150,6 +150,7 @@ const createProduct = async (req, res) => {
         // If product not exists, create new product
         const newProduct = new Product({
             updatedBy: req.userId,
+            productId: req.body.productId,
             ...req.body,
         });
         await newProduct.save();
@@ -161,7 +162,6 @@ const createProduct = async (req, res) => {
 
 const updateProduct = async (req, res) => {
     const productId = req.params.productId;
-    console.log(req.body);
     try {
         // Find if product already exists
         const productExists = await Product.findOne({
@@ -173,6 +173,9 @@ const updateProduct = async (req, res) => {
             });
         }
         // Find product and update
+        if (!req.body.productId) {
+            req.body.productId = productId;
+        }
         await Product.findOneAndUpdate(
             { productId: productId },
             {
@@ -211,6 +214,24 @@ const countProducts = async (req, res) => {
     }
 };
 
+const getProductPayment = async (req, res) => {
+    const productId = req.params.productId;
+    try {
+        // Get payment product by id
+        const product = await Product.findOne({
+            productId: productId,
+        })
+            .select({ payment: 1 })
+            .exec();
+        if (!product) {
+            return res.status(404).json({ message: "Product not found" });
+        }
+        return res.status(200).json(product);
+    } catch (err) {
+        return res.status(500).json(err.message);
+    }
+};
+
 module.exports = {
     getAllProducts,
     getProductsByCategoryId,
@@ -221,4 +242,5 @@ module.exports = {
     updateProduct,
     deleteProduct,
     countProducts,
+    getProductPayment,
 };

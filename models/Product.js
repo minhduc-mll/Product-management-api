@@ -12,6 +12,8 @@ const ProductSchema = new Schema(
         sellerId: { type: ObjectId, ref: "User", default: null },
         price: { type: Number, min: 0, default: 0 },
         deposit: { type: Number, min: 0, default: 0 },
+        payment: { type: Number, min: 0, default: 0 },
+        amount: { type: Number, min: 0, default: 0 },
         desc: { type: String },
         port: { type: String },
         document: { type: String },

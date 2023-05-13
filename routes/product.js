@@ -24,4 +24,6 @@ router.patch(
 );
 router.delete("/:productId", ProductController.deleteProduct);
 
+router.get("/payment/:productId", ProductController.getProductPayment);
+
 module.exports = router;

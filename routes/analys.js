@@ -17,6 +17,18 @@ router.get("/products", countProducts);
 
 router.get("/totalDeposit", verifyAdmin, AnalysController.getTotalDeposit);
 
+router.get(
+    "/totalRevenueByMonth",
+    verifyAdmin,
+    AnalysController.getTotalRevenueByMonth
+);
+
+router.get(
+    "/totalProfitsByMonth",
+    verifyAdmin,
+    AnalysController.getTotalProfitsByMonth
+);
+
 router.get("/productsMonth", AnalysController.countProductsMonth);
 
 router.get("/productsByMonth", AnalysController.countProductsByMonth);
@@ -41,6 +53,11 @@ router.get("/productsInStock", AnalysController.countProductsInStock);
 router.get("/productsWithStatus", AnalysController.countProductsWithStatus);
 
 router.get(
+    "/productsPerUserOneMonth",
+    AnalysController.getProductsPerSellerOneMonth
+);
+
+router.get(
     "/productsPerUserByMonth",
     AnalysController.getProductsPerSellerByMonth
 );
@@ -50,9 +67,11 @@ router.get(
     AnalysController.getProductsPerCategoryByMonth
 );
 
+router.get("/profitsByMonth", AnalysController.getProfitsByMonth);
+
 router.get(
-    "/productsPerUserOneMonth",
-    AnalysController.getProductsPerSellerOneMonth
+    "/profitsPerCategoryByMonth",
+    AnalysController.getProfitsPerCategoryByMonth
 );
 
 module.exports = router;

@@ -100,7 +100,6 @@ const updateProfile = async (req, res) => {
         if (userId != req.userId) {
             return res.status(403).json("User don't have permission!");
         }
-        console.log(userId + " " + req.userId);
         await User.findOneAndUpdate(
             { _id: userId },
             {

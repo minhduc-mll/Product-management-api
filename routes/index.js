@@ -8,6 +8,7 @@ const productRouter = require("./product");
 const categoryRouter = require("./category");
 const customerRouter = require("./customer");
 const eventRouter = require("./event");
+const taskRouter = require("./task");
 const productEventRouter = require("./productEvent");
 const analysRouter = require("./analys");
 const { verifyByCookies } = require("../middlewares/AuthHandler");
@@ -21,6 +22,7 @@ router.use("/products", verifyByCookies, productRouter);
 router.use("/categories", verifyByCookies, categoryRouter);
 router.use("/customers", verifyByCookies, customerRouter);
 router.use("/events", verifyByCookies, eventRouter);
+router.use("/tasks", verifyByCookies, taskRouter);
 router.use("/productevent", verifyByCookies, productEventRouter);
 router.use("/analys", verifyByCookies, analysRouter);
 

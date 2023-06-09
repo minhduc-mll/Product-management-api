@@ -18,7 +18,8 @@ const getTotalDeposit = async (req, res) => {
                 },
             },
         ]).exec();
-        return res.status(200).json(totalDepositSold[0].total);
+        const deposit = totalDepositSold[0]?.total || 0;
+        return res.status(200).json(deposit);
     } catch (err) {
         return res.status(500).json(err.message);
     }
@@ -81,8 +82,8 @@ const getTotalProfitsByMonth = async (req, res) => {
             },
         ]).exec();
         const profits =
-            totalPayMentAndAmountByMonth[0].amount -
-            totalPayMentAndAmountByMonth[0].payment;
+            totalPayMentAndAmountByMonth[0]?.amount -
+                totalPayMentAndAmountByMonth[0]?.payment || 0;
         return res.status(200).json(profits);
     } catch (err) {
         return res.status(500).json(err.message);

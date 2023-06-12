@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const CustomerController = require("../controllers/CustomerController");
-const multer = require("../middlewares/multer");
+const multer = require("../middlewares/Multer");
 const { cloudinaryUpload } = require("../middlewares/CloudinaryUpload");
 
 router.get("/", CustomerController.getAllCustomer);

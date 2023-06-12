@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const UserController = require("../controllers/UserController");
-const multer = require("../middlewares/multer");
+const multer = require("../middlewares/Multer");
 const { verifyAdmin } = require("../middlewares/PermissionHandler");
 const { cloudinaryUpload } = require("../middlewares/CloudinaryUpload");
 

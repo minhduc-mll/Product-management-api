@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const CategoryController = require("../controllers/CategoryController");
-const multer = require("../middlewares/multer");
+const multer = require("../middlewares/Multer");
 const { cloudinaryUpload } = require("../middlewares/CloudinaryUpload");
 
 router.get("/", CategoryController.getAllCategory);

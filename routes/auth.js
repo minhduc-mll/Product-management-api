@@ -8,7 +8,7 @@ const {
     cloudinaryRename,
     cloudinaryDestroy,
 } = require("../middlewares/CloudinaryUpload");
-const multer = require("../middlewares/multer");
+const multer = require("../middlewares/Multer");
 
 router.get("/", verifyByCookies);
 

@@ -4,6 +4,7 @@ const path = require("path");
 const cookieParser = require("cookie-parser");
 const { connectMongoClient, connectMongoose } = require("./config/config");
 const router = require("./routes");
+const dashboardRouter = require("./routes/dashboard");
 
 // App Engine
 const app = express();
@@ -28,6 +29,7 @@ app.use(cookieParser());
 app.disable("view cache");
 
 app.use("/api", router);
+app.use("/", dashboardRouter);
 
 // Development Server
 app.listen(PORT, () => {

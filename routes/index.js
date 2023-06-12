@@ -13,9 +13,9 @@ const productEventRouter = require("./productEvent");
 const analysRouter = require("./analys");
 const { verifyByCookies } = require("../middlewares/AuthHandler");
 
+router.use("/", dashboardRouter);
+router.use("/dashboard", dashboardRouter);
 router.use("/auth", authRouter);
-router.use("/", verifyByCookies, dashboardRouter);
-router.use("/dashboard", verifyByCookies, dashboardRouter);
 router.use("/users", verifyByCookies, userRouter);
 router.use("/roles", verifyByCookies, roleRouter);
 router.use("/products", verifyByCookies, productRouter);

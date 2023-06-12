@@ -2,7 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const path = require("path");
 const cookieParser = require("cookie-parser");
-const connectDb = require("./config/config");
+const { connectMongoClient, connectMongoose } = require("./config/config");
 const router = require("./routes");
 
 // App Engine
@@ -32,6 +32,7 @@ app.use("/api", router);
 // Development Server
 app.listen(PORT, () => {
     // Database Connection
-    connectDb();
+    connectMongoose();
+    // connectMongoClient().catch(console.dir);
     console.log(`Application started on port: ${PORT}`);
 });

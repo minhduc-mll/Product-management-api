@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const { MongoClient, ServerApiVersion } = require("mongodb");
 const cloudinary = require("cloudinary").v2;
 const dotenv = require("dotenv");
 const dotenvExpand = require("dotenv-expand");
@@ -14,11 +15,13 @@ cloudinary.config({
     api_secret: process.env.CLOUDINARY_SECRET,
 });
 
+const uri = process.env.DATABASE_URL;
+
 // Configuration Mongoose
-const connectDb = async () => {
+const connectMongoose = async () => {
     try {
         await mongoose
-            .connect(process.env.DATABASE_URL, {
+            .connect(uri, {
                 useNewUrlParser: true,
                 useUnifiedTopology: true,
             })
@@ -30,4 +33,31 @@ const connectDb = async () => {
     }
 };
 
-module.exports = connectDb;
+// Create a MongoClient with a MongoClientOptions object to set the Stable API version
+const client = new MongoClient(uri, {
+    serverApi: {
+        version: ServerApiVersion.v1,
+        strict: true,
+        deprecationErrors: true,
+    },
+});
+
+async function connectMongoClient() {
+    try {
+        // Connect the client to the server	(optional starting in v4.7)
+        await client.connect();
+        // Send a ping to confirm a successful connection
+        await client.db("admin").command({ ping: 1 });
+        console.log(
+            "Pinged your deployment. You successfully connected to MongoDB!"
+        );
+    } finally {
+        // Ensures that the client will close when you finish/error
+        await client.close();
+    }
+}
+
+module.exports = {
+    connectMongoose,
+    connectMongoClient,
+};

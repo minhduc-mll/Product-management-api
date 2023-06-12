@@ -1,4 +1,5 @@
 const User = require("../models/User");
+const bcrypt = require("bcrypt");
 
 const getAllUser = async (req, res) => {
     const q = req.query;
@@ -81,19 +82,16 @@ const createUser = async (req, res) => {
             return res.status(409).json({ message: "User already exists." });
         }
         // If user not exist, create new user
-        req.body.name = req.body.name || req.body.username;
-        User.find().countDocuments(async function (err, count) {
-            if (err) {
-                return res.status(500).json(err.message);
-            }
-            const newUser = new User({
-                id: count + 1,
-                image: req.image,
-                ...req.body,
-            });
-            await newUser.save();
-            return res.status(201).json(newUser);
+        const name = req.body.name || req.body.username;
+        const hashPassword = bcrypt.hashSync(req.body.password, 6);
+        const newUser = new User({
+            image: req.image,
+            ...req.body,
+            password: hashPassword,
+            name: name,
         });
+        await newUser.save();
+        return res.status(201).json(newUser);
     } catch (err) {
         return res.status(500).json(err.message);
     }
@@ -112,12 +110,17 @@ const updateUser = async (req, res) => {
                 .json({ message: "Username already exists." });
         }
         // If username not exist, find user and update
+        const hashPassword = userExists.password;
+        if (req.body.password) {
+            hashPassword = bcrypt.hashSync(req.body.password, 6);
+        }
         await User.findOneAndUpdate(
             { _id: userId },
             {
                 $set: {
                     image: req.image,
                     ...req.body,
+                    password: hashPassword,
                 },
             }
         );

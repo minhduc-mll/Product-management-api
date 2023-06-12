@@ -2,7 +2,7 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const User = require("../models/User");
 
-const isBcrypt = false;
+const isBcrypt = true;
 
 const register = async (req, res) => {
     const { username, email, password } = req.body;
@@ -59,11 +59,11 @@ const login = async (req, res) => {
         }
         // Check password
         if (isBcrypt) {
-            if (user.password !== req.body.password) {
+            if (bcrypt.compareSync(user.password, req.body.password)) {
                 return res.status(400).json("Invalid username or password");
             }
         } else {
-            if (bcrypt.compareSync(req.body.password, user.password)) {
+            if (user.password !== req.body.password) {
                 return res.status(400).json("Invalid username or password");
             }
         }
@@ -76,7 +76,11 @@ const login = async (req, res) => {
 
         const { password, ...info } = user._doc;
         return res
-            .cookie("accessToken", accessToken, { secure: true })
+            .cookie("accessToken", accessToken, {
+                httpOnly: true,
+                secure: true,
+                // maxAge: 24 * 60 * 60 * 1000,
+            })
             .status(200)
             .json(info);
     } catch (err) {
@@ -133,17 +137,17 @@ const changePassword = async (req, res) => {
         const user = await User.findById(req.userId).exec();
 
         if (isBcrypt) {
+            if (bcrypt.compareSync(user.password, oldPassword)) {
+                return res.status(401).json("Invalid password");
+            }
+            // Save new password
+            user.password = bcrypt.hashSync(password, 6);
+        } else {
             if (oldPassword !== user.password) {
                 return res.status(401).json("Invalid password");
             }
             // Save new password
             user.password = newPassword;
-        } else {
-            if (bcrypt.compareSync(oldPassword, user.password)) {
-                return res.status(401).json("Invalid password");
-            }
-            // Save new password
-            user.password = bcrypt.hashSync(password, 6);
         }
         await user.save();
         return res.status(200).json("Change password successful");

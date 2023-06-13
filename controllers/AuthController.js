@@ -3,6 +3,7 @@ const bcrypt = require("bcrypt");
 const User = require("../models/User");
 
 const isBcrypt = true;
+const TOKEN = process.env.JWT_TOKEN;
 
 const register = async (req, res) => {
     const { username, email, password } = req.body;
@@ -69,10 +70,7 @@ const login = async (req, res) => {
         }
 
         // Create access token with user id
-        let accessToken = jwt.sign(
-            { id: user._id, role: user.role },
-            process.env.JWT_TOKEN
-        );
+        let accessToken = jwt.sign({ id: user._id, role: user.role }, TOKEN);
 
         const { password, ...info } = user._doc;
         return res

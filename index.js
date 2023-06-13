@@ -22,7 +22,6 @@ app.use(cookieParser());
 
 // View engine
 app.use("/api", router);
-app.use("/", dashboardRouter);
 
 // Port
 const PORT = process.env.PORT || 5000;

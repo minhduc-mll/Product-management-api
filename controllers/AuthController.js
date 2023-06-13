@@ -134,6 +134,10 @@ const changePassword = async (req, res) => {
         // Check old password with user password
         const user = await User.findById(req.userId).exec();
 
+        if (!user) {
+            return res.status(404).json("User not found!");
+        }
+
         if (isBcrypt) {
             if (bcrypt.compareSync(user.password, oldPassword)) {
                 return res.status(401).json("Invalid password");

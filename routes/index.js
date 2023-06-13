@@ -16,7 +16,7 @@ const { verifyByCookies } = require("../middlewares/AuthHandler");
 router.use("/", dashboardRouter);
 router.use("/dashboard", dashboardRouter);
 router.use("/auth", authRouter);
-router.use("/users", verifyByCookies, userRouter);
+router.use("/users", userRouter);
 router.use("/roles", verifyByCookies, roleRouter);
 router.use("/products", verifyByCookies, productRouter);
 router.use("/categories", verifyByCookies, categoryRouter);

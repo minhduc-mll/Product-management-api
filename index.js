@@ -14,7 +14,7 @@ const PORT = process.env.PORT || 5000;
 
 // Middleware
 const corsOptions = {
-    origin: "https://hgtp-management.netlify.app/",
+    origin: ["https://hgtp-management.netlify.app", "http://localhost:3000"],
     credentials: true, //access-control-allow-credentials:true
     optionsSuccessStatus: 200, // some legacy browsers (IE11, various SmartTVs) choke on 204
 };

@@ -19,7 +19,7 @@ To install, follow these steps:
 First , clone project
 
 ```
-git clone https://github.com/minhduc-mll/Product-management-frontend.git
+git clone https://github.com/minhduc-mll/Product-management-api.git
 ```
 
 Create .env file and add environment variables

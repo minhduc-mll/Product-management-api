@@ -543,10 +543,11 @@ const getProfitsByMonth = async (req, res) => {
             ...getProfitsByMonth?.map((value) => {
                 return {
                     month: monthNames[value._id.month - 1],
-                    profits: value.amount - value.payment,
+                    profits: Math.ceil(value.amount - value.payment),
                 };
             })
         );
+
         return res.status(200).json(profitsByMonth);
     } catch (err) {
         return res.status(500).json(err.message);
@@ -604,7 +605,9 @@ const getProfitsPerCategoryByMonth = async (req, res) => {
             ...getProfitsPerCategoryByMonth?.map((value) => {
                 return {
                     month: monthNames[value._id.month - 1],
-                    [value._id.category || ""]: value.amount - value.payment,
+                    [value._id.category || ""]: Math.ceil(
+                        value.amount - value.payment
+                    ),
                 };
             })
         );

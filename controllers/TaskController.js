@@ -66,6 +66,15 @@ const createTask = async (req, res) => {
         return res.status(400).json({ message: "Missing input" });
     }
     try {
+        // Find if task already exists
+        const taskExists = await Task.findOne({
+            title: req.body.title,
+        });
+        if (taskExists) {
+            return res.status(409).json({
+                message: "Task exists.",
+            });
+        }
         // Create new task
         const newTask = new Task({
             updatedBy: req.userId,

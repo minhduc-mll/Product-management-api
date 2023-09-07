@@ -119,11 +119,53 @@ const getProduct = async (req, res) => {
     const productId = req.params.productId;
     try {
         // Get product by id
-        const product = await Product.findOne({
-            productId: productId,
-        })
-            .select({ __v: 0, payment: 0 })
-            .exec();
+        // const product = await Product.findOne({
+        //     productId: productId,
+        // })
+        //     .select({ __v: 0, payment: 0 })
+        //     .exec();
+        const products = await Product.aggregate([
+            {
+                $match: {
+                    productId: productId,
+                },
+            },
+            {
+                $lookup: {
+                    from: "categories",
+                    localField: "categoryId",
+                    foreignField: "_id",
+                    as: "category",
+                },
+            },
+            {
+                $lookup: {
+                    from: "users",
+                    localField: "sellerId",
+                    foreignField: "_id",
+                    as: "seller",
+                },
+            },
+            {
+                $lookup: {
+                    from: "customers",
+                    localField: "customerId",
+                    foreignField: "_id",
+                    as: "customer",
+                },
+            },
+            {
+                $addFields: {
+                    category: { $first: "$category" },
+                    seller: { $first: "$seller" },
+                    customer: { $first: "$customer" },
+                },
+            },
+            {
+                $project: { __v: 0, payment: 0 },
+            },
+        ]).exec();
+        const product = products[0];
         if (!product) {
             return res.status(404).json({ message: "Product not found" });
         }
